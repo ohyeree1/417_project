@@ -111,8 +111,23 @@ def readGraph(fileName: str): #create a graph from a given file
 if __name__ == "__main__":
     #create graphs here
     test = randomGraph(10,20)
-    writeGraph("test.txt",test)
-    test2 = readGraph("test.txt")
-    writeGraph("test2.txt",test2)
+    writeGraph("generatedGraphs/test.txt",test)
+    test2 = readGraph("generatedGraphs/test.txt")
+    writeGraph("generatedGraphs/test2.txt",test2)
     #test.txt and test2.txt should be the same
+
+    #create 80 tests according to specifications
+    # 5 graphs for each setting
+    graphSize = [10,100,1000,10000] #number of nodes
+    edgeMultiplier = [1.1,1.25,1.5,2,3] #number of edges relative to nodes
+    for i in range(len(graphSize)):
+        for j in range(len(edgeMultiplier)):
+            for k in range(4):
+                name = "generatedGraphs/graph"+str(i*20+j*4+k+1)+".txt"
+                writeGraph(name,randomGraph(graphSize[i],round(graphSize[i]*edgeMultiplier[j])))
+    #20 extra tests of intentionally designed tests to prevent very short routes
+    #to be added: agents and goals, alternate generator to guarantee no short paths
+
+
+    
     
