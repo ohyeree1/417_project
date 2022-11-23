@@ -67,7 +67,8 @@ class Graph:
 
     def addEdge(self, a: int, b: int, c: int):
         if a == b: return False #no self edges allowed
-        if not self.nodeList[a].add(self.nodeList[b],c): return False #invalid edge
+        if a < 1 or a > self.nodeCount or b < 1 or b > self.nodeCount: return False #index out of range 
+        if not self.nodeList[a].add(self.nodeList[b],c): return False #edge already added
         self.nodeList[b].add(self.nodeList[a],c)
         return True
 
@@ -118,6 +119,36 @@ def randomGraph(n: int, e: int, k: int):
     while extraEdges != 0:
         a = randint(1,n)
         b = randint(1,n)
+        c = randint(1,100) #cost of next edge
+        if g.addEdge(a,b,c): #new edge added?
+            extraEdges -= 1
+    return g
+
+def alternateGraph(n: int, e: int, k: int):
+    """
+    alternate generator that guarantees each agent's path
+    is at least 8 nodes long (will likely be more)
+    """
+    g = Graph(n,k)
+
+    #configure agents
+    ar = [a for a in range(1,k+1)]
+    br = [b for b in range(n+1-k,n+1)]
+    shuffle(ar)
+    shuffle(br)
+    cr = list()
+    for ii in range(len(ar)):
+        cr.append([ar[ii],br[ii]])
+    g.agents = cr
+    
+    #create basic tree (1-2-3-4-5...-n)
+    for i in range(n-1):
+        g.addEdge(i+1,i+2,randint(1,100))
+    extraEdges = e-n+1
+    edgeLimit = n//10
+    while extraEdges != 0:
+        a = randint(1,n)
+        b = a + randint(2,edgeLimit) #connect only at most 1/10th of the graph apart
         c = randint(1,100) #cost of next edge
         if g.addEdge(a,b,c): #new edge added?
             extraEdges -= 1
@@ -205,9 +236,21 @@ if __name__ == "__main__":
             for k in range(4):
                 name = "generatedGraphs/graph"+str(i*20+j*4+k+1)+".txt"
                 writeGraph(name,randomGraph(graphSize[i],round(graphSize[i]*edgeMultiplier[j]),agents[i]))
-    #20 extra tests of intentionally designed tests to prevent very short routes
-    #to be added: agents and goals, alternate generator to guarantee no short paths
 
+    #20 extra tests of intentionally designed tests to prevent very short routes
+    """
+    100 nodes -> 5, 10 agents
+    1000 nodes -> 50, 100 agents
+    all use 1.5 edge multiplier, avg(deg(node)) = 3
+    """
+    graphSize = [100,1000]
+    agentRatio = [20,10]
+    edgeMultiplier = 1.5
+    for t in range(2):
+        for u in range(2):
+            for v in range(5):
+                name = "generatedGraphs/graph"+str(t*10+u*5+v+61)+".txt"
+                writeGraph(name,alternateGraph(graphSize[t],round(graphSize[t]*edgeMultiplier),graphSize[t]//agentRatio[u]))
 
     
     
