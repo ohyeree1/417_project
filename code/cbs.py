@@ -118,16 +118,20 @@ def clone(ar): #creates a deep copy of an array
 class CBSSolver(object):
     """The high-level search of CBS."""
 
-    def __init__(self, my_map, starts, goals):
+    def __init__(self, graph):
         """my_map   - list of lists specifying obstacle positions
         starts      - [(x1, y1), (x2, y2), ...] list of start locations
         goals       - [(x1, y1), (x2, y2), ...] list of goal locations
         """
 
-        self.my_map = my_map
-        self.starts = starts
-        self.goals = goals
-        self.num_of_agents = len(goals)
+        self.my_map = graph.nodeList
+        self.starts = list()
+        self.goals = list()
+        self.num_of_agents = graph.agentCount
+        for i in range(self.num_of_agents):
+            self.starts.append(graph.nodeList[graph.agents[i][0]])
+            self.goals.append(graph.nodeList[graph.agents[i][1]])
+
 
         self.num_of_generated = 0
         self.num_of_expanded = 0
@@ -136,10 +140,11 @@ class CBSSolver(object):
 
         self.open_list = []
 
-        # compute heuristics for the low-level search
+        # compute heuristics for the low-level search (to be adjusted)
         self.heuristics = []
         for goal in self.goals:
-            self.heuristics.append(compute_heuristics(my_map, goal))
+            self.heuristics.append(compute_heuristics(self.my_map, goal))
+
 
     def push_node(self, node):
         heapq.heappush(self.open_list, (node['cost'], len(node['collisions']), self.num_of_generated, node))

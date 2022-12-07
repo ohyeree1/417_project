@@ -44,9 +44,9 @@ def generateAgents(n,a): #generate 'a' random agent paths for n nodes
 #Graph consists of a list of Nodes with each Node's ID being its index in the list
 class Graph:
     def __init__(self,nodeCount: int, agentCount: int): #nodes labelled 1 to n
-        self.nodeCount = nodeCount
-        self.agentCount = agentCount
-        self.nodeList = list()
+        self.nodeCount = nodeCount #number of nodes
+        self.agentCount = agentCount #number of agents
+        self.nodeList = list() #list of nodes
         self.nodeList.append(None)
         for i in range(1,nodeCount+1):
             self.nodeList.append(Node(i))
@@ -55,7 +55,7 @@ class Graph:
         agents are stored as list of (a,b),
         where a is start position and b is end position
         """
-        self.agents = generateAgents(nodeCount,agentCount)
+        self.agents = generateAgents(nodeCount,agentCount) #list of agents [start,finish], integer list
         
     def addEdge(self, a: int, b: int, c: int):
         if a == b: return False #no self edges allowed, waitcost is default to 1

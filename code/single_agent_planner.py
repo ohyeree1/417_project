@@ -1,4 +1,5 @@
 import heapq
+from graph import *
 
 def move(loc, dir):
     directions = [(0, -1), (1, 0), (0, 1), (-1, 0), (0, 0)] #0,0 is stagnant move
@@ -13,6 +14,7 @@ def get_sum_of_cost(paths):
 
 
 def compute_heuristics(my_map, goal):
+    # To be adjusted: given a nodeList (see graph.py) and the goal node (can be located in nodeList using goal.ID)
     # Use Dijkstra to build a shortest-path tree rooted at the goal location
     open_list = []
     closed_list = dict()

@@ -5,6 +5,7 @@ from pathlib import Path
 from cbs import CBSSolver
 from independent import IndependentSolver
 from prioritized import PrioritizedPlanningSolver
+from graph import *
 #from visualize import Animation
 from single_agent_planner import get_sum_of_cost
 
@@ -34,39 +35,31 @@ def print_locations(my_map, locations):
     print(to_print)
 
 
-def import_mapf_instance(filename):
-    f = Path(filename)
+def import_mapf_instance(fileName):
+    f = Path(fileName)
     if not f.is_file():
-        raise BaseException(filename + " does not exist.")
-    f = open(filename, 'r')
-    # first line: #rows #columns
+        raise BaseException(fileName + " does not exist.")
+    f = open(fileName,"r")
     line = f.readline()
-    rows, columns = [int(x) for x in line.split(' ')]
-    rows = int(rows)
-    columns = int(columns)
-    # #rows lines with the map
-    my_map = []
-    for r in range(rows):
+    nodes,edges,agents = map(int,line.split(" "))
+    g = Graph(nodes,agents)
+
+    
+    #add edges
+    for i in range(edges):
         line = f.readline()
-        my_map.append([])
-        for cell in line:
-            if cell == '@':
-                my_map[-1].append(True)
-            elif cell == '.':
-                my_map[-1].append(False)
-    # #agents
-    line = f.readline()
-    num_agents = int(line)
-    # #agents lines with the start/goal positions
-    starts = []
-    goals = []
-    for a in range(num_agents):
+        a,b,c = map(int,line.split(" "))
+        g.addEdge(a,b,c)
+
+    #adjust agents
+    for w in range(agents):
         line = f.readline()
-        sx, sy, gx, gy = [int(x) for x in line.split(' ')]
-        starts.append((sx, sy))
-        goals.append((gx, gy))
+        a,b = map(int,line.split(" "))
+        g.agents[w][0] = a
+        g.agents[w][1] = b
+
     f.close()
-    return my_map, starts, goals
+    return g
 
 """
 test instructions:
@@ -96,20 +89,20 @@ if __name__ == '__main__':
     for file in sorted(glob.glob(args.instance)):
 
         print("***Import an instance***")
-        my_map, starts, goals = import_mapf_instance(file)
-        print_mapf_instance(my_map, starts, goals)
+        my_map = import_mapf_instance(file)
+        print_mapf_instance(my_map)
 
         if args.solver == "CBS":
             print("***Run CBS***")
-            cbs = CBSSolver(my_map, starts, goals)
+            cbs = CBSSolver(my_map)
             paths = cbs.find_solution(args.disjoint)
         elif args.solver == "Independent":
             print("***Run Independent***")
-            solver = IndependentSolver(my_map, starts, goals)
+            solver = IndependentSolver(my_map)
             paths = solver.find_solution()
         elif args.solver == "Prioritized":
             print("***Run Prioritized***")
-            solver = PrioritizedPlanningSolver(my_map, starts, goals)
+            solver = PrioritizedPlanningSolver(my_map)
             paths = solver.find_solution()
         else:
             raise RuntimeError("Unknown solver!")
