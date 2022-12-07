@@ -1,6 +1,6 @@
 import time as timer
 from single_agent_planner import compute_heuristics, a_star, get_sum_of_cost
-
+from graph import *
 
 class IndependentSolver(object):
     """A planner that plans for each robot independently."""

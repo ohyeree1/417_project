@@ -5,7 +5,7 @@ from pathlib import Path
 from cbs import CBSSolver
 from independent import IndependentSolver
 from prioritized import PrioritizedPlanningSolver
-from visualize import Animation
+#from visualize import Animation
 from single_agent_planner import get_sum_of_cost
 
 SOLVER = "CBS"
@@ -68,6 +68,13 @@ def import_mapf_instance(filename):
     f.close()
     return my_map, starts, goals
 
+"""
+test instructions:
+python run_experiments.py --instance "testGraphs/graph*" --solver CBS
+
+above tests CBS on the test graphs and writes to output to CBSresults.txt
+swap CBS with other algorithms as needed
+"""
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Runs various MAPF algorithms')
@@ -82,10 +89,10 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    #main result writer used
     
-    result_file = open("results.csv", "w", buffering=1)
-
+    output_file = str(args.solver)+"result.txt"
+    result_file = open(output_file, "w", buffering=1)
+    
     for file in sorted(glob.glob(args.instance)):
 
         print("***Import an instance***")
@@ -106,16 +113,10 @@ if __name__ == '__main__':
             paths = solver.find_solution()
         else:
             raise RuntimeError("Unknown solver!")
-        
+
         cost = get_sum_of_cost(paths)
         result_file.write("{},{}\n".format(file, cost))
 
-
-        if not args.batch:
-            print("***Test paths on a simulation***")
-            animation = Animation(my_map, starts, goals, paths)
-            # animation.save("output.mp4", 1.0)
-            animation.show()
     result_file.close()
     
 

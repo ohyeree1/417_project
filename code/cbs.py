@@ -2,6 +2,7 @@ import time as timer
 import heapq
 from random import randint #randint(0,1) for 4.2
 from single_agent_planner import compute_heuristics, a_star, get_location, get_sum_of_cost
+from graph import *
 
 
 def detect_collision(path1, path2):
