@@ -10,10 +10,9 @@ prevent each agent taking an "optimal" path 1 at a time
 FILE FORMAT:
 
 First line contains 3 values n,e,k
-next n lines each contain a single value for the wait cost of each node
+n is the number of nodes labelled 1 to n.
 next e lines each contain a,b,c, where node a and node b are connected with cost c
 next k lines contains vals s,g where agent starts at node s and ends at node g
-
 """
 
 
@@ -21,7 +20,6 @@ class Node:
     def __init__(self,ID):
         self.ID = ID
         self.edges = {}
-        self.waitCost = randint(10,50)
         
     def add(self,x,c: int): #add edge to node x of cost c
         if self.edges.get(x.ID) != None: return False #max 1 edge between any 2 points
@@ -29,7 +27,7 @@ class Node:
         return True #edge added
 
 
-def generateAgents(n,a): #generate a random agents for n nodes
+def generateAgents(n,a): #generate 'a' random agent paths for n nodes
     ar = [i for i in range(1,n+1)]
     br = [j for j in range(1,n+1)]
     shuffle(ar)
@@ -60,13 +58,15 @@ class Graph:
         self.nodeList.append(None)
         for i in range(1,nodeCount+1):
             self.nodeList.append(Node(i))
+        """
+        generate random agents here
+        agents are stored as list of (a,b),
+        where a is start position and b is end position
+        """
         self.agents = generateAgents(nodeCount,agentCount)
-        #generate random agents here
-        #for now the agents are stored as list of (a,b),
-        #where a is start position and b is end position
-
+        
     def addEdge(self, a: int, b: int, c: int):
-        if a == b: return False #no self edges allowed
+        if a == b: return False #no self edges allowed, waitcost is default to 1
         if a < 1 or a > self.nodeCount or b < 1 or b > self.nodeCount: return False #index out of range 
         if not self.nodeList[a].add(self.nodeList[b],c): return False #edge already added
         self.nodeList[b].add(self.nodeList[a],c)
@@ -111,7 +111,7 @@ def randomGraph(n: int, e: int, k: int):
     startingEdges = decodePrufer(p)
     g = Graph(n,k)
     for i in range(len(startingEdges)):
-        c = randint(1,100) #next edge cost
+        c = randint(1,5) #next edge time cost
         assert g.addEdge(startingEdges[i][0],startingEdges[i][1],c)
 
     #g is now a tree
@@ -119,8 +119,8 @@ def randomGraph(n: int, e: int, k: int):
     while extraEdges != 0:
         a = randint(1,n)
         b = randint(1,n)
-        c = randint(1,100) #cost of next edge
-        if g.addEdge(a,b,c): #new edge added?
+        c = randint(1,5) #cost of next edge
+        if g.addEdge(a,b,c): #new edge added if True
             extraEdges -= 1
     return g
 
@@ -128,6 +128,9 @@ def alternateGraph(n: int, e: int, k: int):
     """
     alternate generator that guarantees each agent's path
     is at least 8 nodes long (will likely be more)
+    starting points are nodes 1-k
+    end points are nodes (n-k+1)-n
+    an edge can only connect two nodes with difference at most n//10
     """
     g = Graph(n,k)
 
@@ -143,14 +146,14 @@ def alternateGraph(n: int, e: int, k: int):
     
     #create basic tree (1-2-3-4-5...-n)
     for i in range(n-1):
-        g.addEdge(i+1,i+2,randint(1,100))
+        g.addEdge(i+1,i+2,randint(1,5))
     extraEdges = e-n+1
     edgeLimit = n//10
     while extraEdges != 0:
         a = randint(1,n)
-        b = a + randint(2,edgeLimit) #connect only at most 1/10th of the graph apart
-        c = randint(1,100) #cost of next edge
-        if g.addEdge(a,b,c): #new edge added?
+        b = a + randint(2,edgeLimit) #connect at most 1/10th of the graph apart
+        c = randint(1,5) #cost of next edge
+        if g.addEdge(a,b,c): #new edge added if True
             extraEdges -= 1
     return g
 
@@ -171,12 +174,6 @@ def writeGraph(fileName: str, graph: Graph):
     #first line
     line = str(nc)+" "+str(ec)+" "+str(ac)+"\n"
     f.write(line)
-
-
-    #node + wait cost
-    for m in range(nc):
-        line = str(graph.nodeList[m+1].waitCost)+"\n"
-        f.write(line)
     
     #edges
     for k in range(ec):
@@ -200,9 +197,6 @@ def readGraph(fileName: str):
     nodes,edges,agents = map(int,line.split(" "))
     g = Graph(nodes,agents)
 
-    #adjust node values
-    for v in range(nodes):
-        g.nodeList[v+1].waitCost = int(f.readline())
     
     #add edges
     for i in range(edges):
