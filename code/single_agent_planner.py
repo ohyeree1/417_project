@@ -11,8 +11,8 @@ def get_sum_of_cost(paths):
 def compute_heuristics(node_list, goal_node):
     # Use Dijkstra to build a shortest-path tree rooted at the goal location
 
-    # TO DO: add cost as h_value of the node (ex. node.h_value = cost)
-    
+    # TO DO: add cost as h_value of the node (ex. node_list[node].h_value = cost)
+
     open_list = []
     closed_list = dict()
     root = {'loc': goal_node, 'cost': 0}
