@@ -1,11 +1,6 @@
 import heapq
 from graph import *
 
-def move(loc, dir):
-    directions = [(0, -1), (1, 0), (0, 1), (-1, 0), (0, 0)] #0,0 is stagnant move
-    return loc[0] + directions[dir][0], loc[1] + directions[dir][1]
-
-
 def get_sum_of_cost(paths):
     rst = 0
     for path in paths:
@@ -13,39 +8,48 @@ def get_sum_of_cost(paths):
     return rst
 
 
-def compute_heuristics(my_map, goal):
-    # To be adjusted: given a nodeList (see graph.py) and the goal node (can be located in nodeList using goal.ID)
+def compute_heuristics(node_list, goal_node):
     # Use Dijkstra to build a shortest-path tree rooted at the goal location
+
+    # TO DO: add cost as h_value of the node (ex. node.h_value = cost)
+    
     open_list = []
     closed_list = dict()
-    root = {'loc': goal, 'cost': 0}
-    heapq.heappush(open_list, (root['cost'], goal, root))
-    closed_list[goal] = root
+    root = {'loc': goal_node, 'cost': 0}
+    visited = []
+    heapq.heappush(open_list, (root['cost'], goal_node, root, visited))
+
+    # We are traversing back from the goal node
+    closed_list[goal_node] = root
     while len(open_list) > 0:
-        (cost, loc, curr) = heapq.heappop(open_list)
-        for dir in range(4):
-            child_loc = move(loc, dir)
-            child_cost = cost + 1
-            if child_loc[0] < 0 or child_loc[0] >= len(my_map) \
-               or child_loc[1] < 0 or child_loc[1] >= len(my_map[0]):
-               continue
-            if my_map[child_loc[0]][child_loc[1]]:
+        (cost, curr_node, curr, visited) = heapq.heappop(open_list)
+        
+        neighbors = curr_node.edges
+        for neighbor_node in neighbors:
+            if neighbor_node in visited:
                 continue
+            visited.append(neighbor_node)
+
+            child_loc = neighbor_node
+            child_cost = cost + neighbor_node.get_cost()
+            
             child = {'loc': child_loc, 'cost': child_cost}
             if child_loc in closed_list:
                 existing_node = closed_list[child_loc]
                 if existing_node['cost'] > child_cost:
                     closed_list[child_loc] = child
                     # open_list.delete((existing_node['cost'], existing_node['loc'], existing_node))
-                    heapq.heappush(open_list, (child_cost, child_loc, child))
+                    heapq.heappush(open_list, (child_cost, child_loc, child, visited))
             else:
                 closed_list[child_loc] = child
-                heapq.heappush(open_list, (child_cost, child_loc, child))
+                heapq.heappush(open_list, (child_cost, child_loc, child, visited))
 
     # build the heuristics table
     h_values = dict()
     for loc, node in closed_list.items():
         h_values[loc] = node['cost']
+
+    print("h_values from compute heuristics: ")
     return h_values
 
 
