@@ -10,11 +10,15 @@ class Node:
     def __init__(self,ID):
         self.ID = ID
         self.edges = {}
+        self.h_value = 0
         
     def add(self,x,c: int): #add edge to node x of cost c
         if self.edges.get(x.ID) != None: return False #max 1 edge between any 2 points
         self.edges[x.ID] = c
         return True #edge added
+
+    def get_cost(self, neighbour_node):
+        return self.edges[neighbour_node.ID]
 
 def generateAgents(n,a): #generate 'a' random agent paths for n nodes
     ar = [i for i in range(1,n+1)]
