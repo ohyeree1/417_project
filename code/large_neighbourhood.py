@@ -74,7 +74,32 @@ class LargeNeighbourhoodSolver(object):
         4. if the repaired version results in a better solution (less collisions or faster), keep it
         5. repeat until solution is optimal or good enough
         """
-        
+
+
+        # 1. use single agent planner to create a solution
+        # if 0 collisions, it's optimal
+
+
+
+        # 2. if there are collisions, choose the path stochastically with the most problems/or slowest and delete it
+        # worst has 50%, 2nd worst 25%, 3rd worst 12.5%, so on until last two have equally small chance
+        # For now assume the other paths are optimal
+
+
+        # 3. Recreate the path with a stocastic search
+        # Assign value to each action based on heuristic value
+        # Causes collision: 0 (unless all options result in collision)
+        # Optimal path according to heuristic has highest chance with suboptimal still possible since they may avoid collisions
+
+
+
+        # 4. Reevaluate the solution, if better, keep it
+
+
+
+        # 5. If no improvment is found after some number of attempts, return solution
+        # Arbritarily choosing 5*# of agents
+        """
         longestPath = 0 #for creating a time limit (2.4)
         openSpots = self.countOpen(self.my_map)
 
@@ -95,11 +120,11 @@ class LargeNeighbourhoodSolver(object):
                 if collision_detected != None: 
                     #collision found, add constraint and try again
                     path = None
-                    """
+                    
                     format is [a,t], a is faulty area
                     if len(a) == 1, vertex constraint, else edge constraint
                     (the length part is already figured out by create_constraint_table)
-                    """
+                    
                     constraints.append({'agent': i, 'loc': collision_detected[0], 'timestep': collision_detected[1], 'positive': 0})
 
             # no collision found, add to result
@@ -111,7 +136,7 @@ class LargeNeighbourhoodSolver(object):
 
 
             
-
+        """
         self.CPU_time = timer.time() - start_time
 
         print("\n Found a solution! \n")
