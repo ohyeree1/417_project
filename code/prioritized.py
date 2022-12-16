@@ -107,7 +107,7 @@ class PrioritizedPlanningSolver(object):
         print("Paths in the solution:")
         for agent in range(self.num_of_agents):
             path_str = ""
-            for node in result[agent]:
+            for (node, timestep) in result[agent]:
                 path_str += str(node.ID)
                 path_str += " "
             print("Agent " + str(agent) + ": ", path_str)
