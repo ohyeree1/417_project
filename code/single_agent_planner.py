@@ -171,7 +171,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     earliest_goal_timestep = get_earliest_goal_timestep(agent, goal_loc, constraints)
 
     h_value = h_values[start_loc]
-    root = {'loc': start_loc, 'g_val': 0, 'h_val': h_value, 'parent': None, 'time': 0}
+    root = {'loc': start_loc, 'g_val': 0, 'h_val': h_value, 'parent': None, 'time': 0, 'cost': 0}
     push_node(open_list, root)
 
     closed_list[(root['loc'], root['time'])] = root
@@ -179,40 +179,37 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
 
     while len(open_list) > 0:
         curr = pop_node(open_list)
+        curr_node = curr['loc']
         
         # update earliest_goal_timestep
 
         # Task 1.4: Added extra constraint to make sure all constraints listed are fufilled
-        if curr['loc'] == goal_loc and  curr['time'] >= earliest_goal_timestep:
+        if curr_node == goal_loc and curr['time'] >= earliest_goal_timestep:
             return get_path(curr)
 
-        neighbors = curr['loc'].edges
-        print("current node and neighbors: ", curr['loc'].ID)
-        print(curr['loc'])
-
+        neighbors = curr_node.edges
         for neighbor in neighbors:
             if neighbor is None:
                 continue
             child_node = neighbors[neighbor][0]
-            child_loc = child_node
-            #1.2/1.3: additional constraint checking if path is okay by constraint table added here
+            new_cost = curr_node.get_cost(child_node)[1]
 
-            if is_constrained(curr['loc'], child_loc, curr['time'] + 1, constraint_table): #constraint violation
+            if is_constrained(curr['loc'], child_node, curr['time'] + 1, constraint_table):
                 continue
 
-            # create child node
-            child = {'loc': child_loc,
-                    'g_val': curr['g_val'] + 1,
-                    'h_val': h_values[child_loc],
+            child = {'loc': child_node,
+                    'g_val': curr['g_val'] + new_cost,
+                    'h_val': h_values[child_node],
                     'parent': curr,
                     'time': curr['time'] + 1}
-            if (child['loc'],child['time']) in closed_list:
+
+            if (child['loc'], child['time']) in closed_list:
                 existing_node = closed_list[(child['loc'],child['time'])]
                 if compare_nodes(child, existing_node):
-                    closed_list[(child['loc'],child['time'])] = child
+                    closed_list[(child['loc'], child['time'])] = child
                     push_node(open_list, child)
             else:
-                closed_list[(child['loc'],child['time'])] = child
+                closed_list[(child['loc'], child['time'])] = child
                 push_node(open_list, child)
                 
     return None  # Failed to find solutions
