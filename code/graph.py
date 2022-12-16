@@ -10,7 +10,10 @@ class Node:
     def __init__(self,ID):
         self.ID = ID
         self.edges = {}
-        # self.h_value = 0
+        self.h_value = 0
+
+    def __lt__(self, other):
+        return self.h_value < other.h_value
         
     def add(self,x,c: int): #add edge to node x of cost c
         if self.edges.get(x.ID) != None: return False #max 1 edge between any 2 points
