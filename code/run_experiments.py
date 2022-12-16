@@ -18,7 +18,7 @@ def print_mapf_instance(my_map):
     print(my_map.nodeList)
     for node in my_map.nodeList:
         if node is not None:
-            node.print()
+            print(node)
 
     for agent in range(len(my_map.agents)):
         print("Agent ", agent, ": start: ", my_map.agents[agent][0], ": goal: ", my_map.agents[agent][1])

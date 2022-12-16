@@ -51,13 +51,6 @@ class PrioritizedPlanningSolver(object):
         
         return None #no collisions found
 
-    def countOpen(self, my_map): #count number of spots that are not walls (2.4)
-        ans = 0
-        for i in range(len(my_map)):
-            for j in range(len(my_map[i])):
-                if not my_map[i][j]: ans += 1
-        return ans
-
     def find_solution(self):
         """ Finds paths for all agents from their start locations to their goal locations."""
 
@@ -76,9 +69,6 @@ class PrioritizedPlanningSolver(object):
         {'agent': 1, 'loc': [(1,4)], 'timestep': 2},
         {'agent': 1, 'loc': [(1,2)], 'timestep': 2}
         """
-        
-        longestPath = 0 #for creating a time limit (2.4)
-        openSpots = self.countOpen(self.my_map)
 
         for i in range(self.num_of_agents):  # Find path for each agent
             ##############################
@@ -90,10 +80,11 @@ class PrioritizedPlanningSolver(object):
             ##############################
             path = None
             while path == None:
-                path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i], i, constraints, openSpots+longestPath)
+                path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i], i, constraints)
                 if path is None:
                     raise BaseException('No solutions')
-                collision_detected = self.find_collision(path,result)
+
+                collision_detected = self.find_collision(path, result)
                 if collision_detected != None: 
                     #collision found, add constraint and try again
                     path = None
@@ -106,13 +97,7 @@ class PrioritizedPlanningSolver(object):
 
             # no collision found, add to result
             result.append(path)
-            longestPath = max(len(path),longestPath)
-            # debug for 2.4
-            print("added path for Agent",i)
-            print(path)
 
-
-            
 
         self.CPU_time = timer.time() - start_time
 
@@ -120,7 +105,12 @@ class PrioritizedPlanningSolver(object):
         print("CPU time (s):    {:.2f}".format(self.CPU_time))
         print("Sum of costs:    {}".format(get_sum_of_cost(result)))
         print("Paths in the solution:")
-        for j in range(self.num_of_agents):
-            print("Agent #"+str(j),result[j])
-        #print(result)
+        for agent in range(self.num_of_agents):
+            path_str = ""
+            for node in result[agent]:
+                path_str += str(node.ID)
+                path_str += " "
+            print("Agent " + str(agent) + ": ", path_str)
+
+
         return result
