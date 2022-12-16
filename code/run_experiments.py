@@ -11,11 +11,17 @@ from single_agent_planner import get_sum_of_cost
 
 SOLVER = "CBS"
 
-def print_mapf_instance(my_map, starts, goals):
-    print('Start locations')
-    print_locations(my_map, starts)
-    print('Goal locations')
-    print_locations(my_map, goals)
+def print_mapf_instance(my_map):
+    print("Node count: ", my_map.nodeCount)
+    print("Agent count: ", my_map.agentCount)
+    print("Node List")
+    print(my_map.nodeList)
+    for node in my_map.nodeList:
+        if node is not None:
+            node.print()
+
+    for agent in range(len(my_map.agents)):
+        print("Agent ", agent, ": start: ", my_map.agents[agent][0], ": goal: ", my_map.agents[agent][1])
 
 
 def print_locations(my_map, locations):
@@ -90,6 +96,7 @@ if __name__ == '__main__':
 
         print("***Import an instance***")
         my_map = import_mapf_instance(file)
+        print(my_map)
         print_mapf_instance(my_map)
 
         if args.solver == "CBS":
