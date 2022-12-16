@@ -97,7 +97,7 @@ def get_path(goal_node):
     path = []
     curr = goal_node
     while curr is not None:
-        path.append(curr['loc'])
+        path.append((curr['loc'], curr['g_val']))
         curr = curr['parent']
     path.reverse()
     return path
