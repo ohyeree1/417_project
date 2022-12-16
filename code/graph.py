@@ -9,16 +9,19 @@ Helper file to define the graph structure
 class Node:
     def __init__(self,ID):
         self.ID = ID
-        self.edges = {}
+        self.edges = {} #key stored is the node, value assigned to it is the cost
         self.h_value = 0
         
     def add(self,x,c: int): #add edge to node x of cost c
-        if self.edges.get(x.ID) != None: return False #max 1 edge between any 2 points
-        self.edges[x.ID] = c
+        if self.edges.get(x) != None: return False #max 1 edge between any 2 points
+        self.edges[x] = c
         return True #edge added
 
     def get_cost(self, neighbour_node):
         return self.edges[neighbour_node.ID]
+    
+    def get_neighbours(self): # return all neighbours of this node
+        return list(self.edges.keys())
 
 def generateAgents(n,a): #generate 'a' random agent paths for n nodes
     ar = [i for i in range(1,n+1)]
@@ -58,6 +61,7 @@ class Graph:
         generate random agents here
         agents are stored as list of (a,b),
         where a is start position and b is end position
+        the random values are adjusted according to the input given.
         """
         self.agents = generateAgents(nodeCount,agentCount) #list of agents [start,finish], integer list
         
