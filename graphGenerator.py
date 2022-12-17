@@ -222,8 +222,8 @@ if __name__ == "__main__":
     #test.txt and test2.txt should be the same
 
     # creates 60 tests
-    agents = [2,10,50] #number of agents
-    graphSize = [10,100,1000] #number of nodes
+    agents = [2,8,20] #number of agents
+    graphSize = [10,50,250] #number of nodes
     edgeMultiplier = [1.1,1.25,1.5,2,3] #number of edges relative to nodes
     for i in range(len(graphSize)):
         for j in range(len(edgeMultiplier)):
@@ -237,7 +237,7 @@ if __name__ == "__main__":
     1000 nodes -> 50, 100 agents
     all use 1.5 edge multiplier, avg(deg(node)) = 3
     """
-    graphSize = [100,1000]
+    graphSize = [50,250]
     agentRatio = [20,10]
     edgeMultiplier = 1.5
     for t in range(2):
