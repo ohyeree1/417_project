@@ -1,7 +1,7 @@
 import heapq
 from graph import *
 
-def get_sum_of_cost(paths):
+def get_sum_of_cost(paths): #returns sum of the cost of paths
     rst = 0
     for path in paths:
         for k in range(len(path)-1):
@@ -11,7 +11,7 @@ def get_sum_of_cost(paths):
                 rst += path[k].edges[path[k+1].ID][1] #edge cost
     return rst
 
-def print_paths(paths):
+def print_paths(paths): #prints out the paths in a more understandable way
     for path in range(len(paths)):
         path_str = ""
         for node in range(len(paths[path])):
