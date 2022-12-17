@@ -195,10 +195,8 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
         curr = pop_node(open_list)
         curr_node = curr['loc']
         
-        # TO DO: Return both path and cost of the path
         if curr_node == goal_loc and curr['time'] >= earliest_goal_timestep:
             return get_path(curr)
-            # return get_path(curr), curr['g_val']
 
         neighbors = curr_node.edges
         for neighbor in neighbors:
