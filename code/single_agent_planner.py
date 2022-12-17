@@ -199,6 +199,8 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
             return get_path(curr)
 
         neighbors = curr_node.edges
+        neighbors[curr_node.ID] = [curr_node, 1]    # add wait cost option
+
         for neighbor in neighbors:
             if neighbor is None:
                 continue
