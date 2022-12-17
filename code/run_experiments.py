@@ -16,7 +16,7 @@ def print_mapf_instance(my_map):
     print("Node count: ", my_map.nodeCount)
     print("Agent count: ", my_map.agentCount)
     print("Node List")
-    print(my_map.nodeList)
+    #print(my_map.nodeList)
     for node in my_map.nodeList:
         if node is not None:
             print(node)
@@ -93,7 +93,7 @@ if __name__ == '__main__':
     output_file = str(args.solver)+"result.txt"
     result_file = open(output_file, "w", buffering=1)
     
-    print_problem = False #set to False for full testing, printing out each map takes up a lot of space
+    print_problem = True #set to False for full testing, printing out each map takes up a lot of space
 
     for file in sorted(glob.glob(args.instance)):
 

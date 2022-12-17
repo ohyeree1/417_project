@@ -12,6 +12,7 @@ class Node:
         self.edges = {}
         self.h_value = 0
         # TO DO: add heuristics from compute heuristics
+        self.printedges = {} #ONLY USED FOR SHOWING THE GRAPH, SHOULD NEVER BE USED IN ACTUAL COMPUTATION
 
     def __lt__(self, other):
         return self.h_value < other.h_value
@@ -19,13 +20,14 @@ class Node:
     def add(self,x,c: int): # add edge to node x of cost c
         if self.edges.get(x.ID) != None: return False # max 1 edge between any 2 points
         self.edges[x.ID] = [x, c]   # Add neighboring node and the cost between them
+        self.printedges[x.ID] = c
         return True # edge added
 
     def get_cost(self, neighbour_node):
         return self.edges[neighbour_node.ID]
 
     def __str__(self):
-        return f'Node ID: {self.ID}, Edges: {self.edges}'
+        return f'Node ID: {self.ID}, Edges: {self.printedges}'
         
 
 def generateAgents(n,a): #generate 'a' random agent paths for n nodes
