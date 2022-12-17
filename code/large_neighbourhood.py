@@ -1,9 +1,15 @@
 import time as timer
-from single_agent_planner import compute_heuristics, a_star, get_sum_of_cost
+from single_agent_planner import *
 from graph import *
 
 #template from prioritized.py, adjust as necessary
+"""
+test instructions:
+python run_experiments.py --instance "testGraphs/graph*" --solver LNS
 
+above tests CBS on the test graphs and writes to output to CBSresults.txt
+swap CBS with other algorithms as needed
+"""
 class LargeNeighbourhoodSolver(object):
     """A planner that plans for each robot sequentially."""
 
@@ -23,7 +29,7 @@ class LargeNeighbourhoodSolver(object):
             
         self.CPU_time = 0
 
-        # compute heuristics for the low-level search (to be adjusted)
+        # compute Dijkstra heuristics
         self.heuristics = []
         for goal in self.goals:
             self.heuristics.append(compute_heuristics(self.my_map, goal))
@@ -79,7 +85,8 @@ class LargeNeighbourhoodSolver(object):
         # 1. use single agent planner to create a solution
         # if 0 collisions, it's optimal
 
-
+        for i in range(self.num_of_agents):
+            result.append(a_star(self.my_map,self.starts[i],self.goals[i],self.heuristics[i],i,constraints))
 
         # 2. if there are collisions, choose the path stochastically with the most problems/or slowest and delete it
         # worst has 50%, 2nd worst 25%, 3rd worst 12.5%, so on until last two have equally small chance
@@ -142,8 +149,9 @@ class LargeNeighbourhoodSolver(object):
         print("\n Found a solution! \n")
         print("CPU time (s):    {:.2f}".format(self.CPU_time))
         print("Sum of costs:    {}".format(get_sum_of_cost(result)))
-        print("Paths in the solution:")
-        for j in range(self.num_of_agents):
-            print("Agent #"+str(j),result[j])
+        #print("Paths in the solution:")
+        #print_paths(result)
+        #for j in range(self.num_of_agents):
+            #print("Agent #"+str(j),result[j])
         #print(result)
         return result

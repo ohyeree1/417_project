@@ -93,12 +93,15 @@ if __name__ == '__main__':
     output_file = str(args.solver)+"result.txt"
     result_file = open(output_file, "w", buffering=1)
     
+    print_problem = False #set to False for full testing, printing out each map takes up a lot of space
+
     for file in sorted(glob.glob(args.instance)):
 
         print("***Import an instance***")
         my_map = import_mapf_instance(file)
-        print(my_map)
-        print_mapf_instance(my_map)
+        if print_problem:
+            print(my_map)
+            print_mapf_instance(my_map)
 
         if args.solver == "CBS":
             print("***Run CBS***")
