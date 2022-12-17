@@ -5,6 +5,7 @@ from pathlib import Path
 from cbs import CBSSolver
 from independent import IndependentSolver
 from prioritized import PrioritizedPlanningSolver
+from large_neighbourhood import LargeNeighbourhoodSolver
 from graph import *
 #from visualize import Animation
 from single_agent_planner import get_sum_of_cost
@@ -15,7 +16,7 @@ def print_mapf_instance(my_map):
     print("Node count: ", my_map.nodeCount)
     print("Agent count: ", my_map.agentCount)
     print("Node List")
-    print(my_map.nodeList)
+    #print(my_map.nodeList)
     for node in my_map.nodeList:
         if node is not None:
             print(node)
@@ -92,12 +93,15 @@ if __name__ == '__main__':
     output_file = str(args.solver)+"result.txt"
     result_file = open(output_file, "w", buffering=1)
     
+    print_problem = True #set to False for full testing, printing out each map takes up a lot of space
+
     for file in sorted(glob.glob(args.instance)):
 
         print("***Import an instance***")
         my_map = import_mapf_instance(file)
-        print(my_map)
-        print_mapf_instance(my_map)
+        if print_problem:
+            print(my_map)
+            print_mapf_instance(my_map)
 
         if args.solver == "CBS":
             print("***Run CBS***")
@@ -111,6 +115,10 @@ if __name__ == '__main__':
             print("***Run Prioritized***")
             solver = PrioritizedPlanningSolver(my_map)
             paths = solver.find_solution()
+        elif args.solver == "LNS":
+            print("***Run LNS***")
+            lns = LargeNeighbourhoodSolver(my_map)
+            paths = lns.find_solution()
         else:
             raise RuntimeError("Unknown solver!")
 
