@@ -4,8 +4,20 @@ from graph import *
 def get_sum_of_cost(paths):
     rst = 0
     for path in paths:
-        rst += len(path) - 1
+        for k in range(len(path)-1):
+            if path[k].ID == path[k+1].ID: #same node, wait
+                rst += 1
+            else:
+                rst += path[k].edges[path[k+1].ID][1] #edge cost
     return rst
+
+def print_paths(paths):
+    for path in range(len(paths)):
+        path_str = ""
+        for node in range(len(paths[path])):
+            path_str += str(paths[path][node].ID)
+            path_str += " "
+        print("Agent " + str(path) + ": ", path_str)
 
 
 def compute_heuristics(node_list, goal_node):
@@ -48,9 +60,11 @@ def compute_heuristics(node_list, goal_node):
     for loc, node in closed_list.items():
         h_values[loc] = node['cost']
 
+    """ debug for heuristic values
     print("h_values from compute heuristics: ")
     print(h_values)
     print()
+    """
     return h_values
 
 
