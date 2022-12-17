@@ -78,22 +78,20 @@ class PrioritizedPlanningSolver(object):
             #            * self.num_of_agents has the number of total agents
             #            * constraints: array of constraints to consider for future A* searches
             ##############################
-            path = None
-            while path == None:
-                path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i], i, constraints)
-                if path is None:
-                    raise BaseException('No solutions')
 
-                collision_detected = self.find_collision(path, result)
-                if collision_detected != None: 
-                    #collision found, add constraint and try again
-                    path = None
-                    """
-                    format is [a,t], a is faulty area
-                    if len(a) == 1, vertex constraint, else edge constraint
-                    (the length part is already figured out by create_constraint_table)
-                    """
-                    constraints.append({'agent': i, 'loc': collision_detected[0], 'timestep': collision_detected[1], 'positive': 0})
+            path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i], i, constraints)
+            if path is None:
+                raise BaseException('No solutions')
+
+            collision_detected = self.find_collision(path, result)
+            if collision_detected is not None: 
+                #collision found, add constraint and try again
+                """
+                format is [a,t], a is faulty area
+                if len(a) == 1, vertex constraint, else edge constraint
+                (the length part is already figured out by create_constraint_table)
+                """
+                constraints.append({'agent': i, 'loc': collision_detected[0], 'timestep': collision_detected[1], 'positive': 0})
 
             # no collision found, add to result
             result.append(path)
@@ -105,9 +103,11 @@ class PrioritizedPlanningSolver(object):
         print("CPU time (s):    {:.2f}".format(self.CPU_time))
         print("Sum of costs:    {}".format(get_sum_of_cost(result)))
         print("Paths in the solution:")
+
+        print(result)
         for agent in range(self.num_of_agents):
             path_str = ""
-            for (node, timestep) in result[agent]:
+            for node in result[agent]:
                 path_str += str(node.ID)
                 path_str += " "
             print("Agent " + str(agent) + ": ", path_str)
