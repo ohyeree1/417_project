@@ -5,6 +5,14 @@ from single_agent_planner import compute_heuristics, a_star, get_location, get_s
 from graph import *
 
 
+def overlap(curr_time, constraint_time):
+    a, b = curr_time
+    ca, cb = constraint_time
+    if (a <= ca and b >= ca) or (a >= ca and cb >= a):
+        return True
+    return False
+    
+
 def detect_collision(path1, path2):
     ##############################
     # Task 3.1: Return the first collision that occurs between two robot paths (or None if there is no collision)
@@ -13,20 +21,70 @@ def detect_collision(path1, path2):
     #           An edge collision occurs if the robots swap their location at the same timestep.
     #           You should use "get_location(path, t)" to get the location of a robot at time t.
 
-    path1_len = len(path1)
-    path2_len = len(path2)
-    longest = max(path1_len,path2_len)
-    #vertex collision
-    for i in range(longest): 
-        #vertex collision
-        if get_location(path1,i) == get_location(path2,i): 
-            return [get_location(path1,i)],i
-        #edge collision
-        if i != longest-1:
-            if get_location(path1,i) == get_location(path2,i+1) and get_location(path1,i+1) == get_location(path2,i):
-                return [get_location(path1,i),get_location(path1,i+1)],i+1  
-        
-    return None,None
+    path_table_1 = {}
+    for step in range(len(path1)):
+        if step == 0:
+            cost = 0
+            new_cost = 0
+        else:
+            if path1[step - 1].ID == path1[step].ID: #same node, wait
+                new_cost = cost + 1
+            else:
+                new_cost = cost + path1[step - 1].edges[path1[step].ID][1] #edge cost
+            
+            a = path1[step - 1].ID
+            b = path1[step].ID
+            if b not in path_table_1:
+                path_table_1[b] = []
+            path_table_1[b].append((a, [cost, new_cost]))
+    
+        if new_cost not in path_table_1:
+            path_table_1[new_cost] = [] # agent, loc, time_cost
+        path_table_1[new_cost].append(path1[step]) # agent, loc, time_cost
+
+    path_table_2 = {}
+    for step in range(len(path2)):
+        if step == 0:
+            cost = 0
+            new_cost = 0
+        else:
+            if path2[step - 1].ID == path2[step].ID: #same node, wait
+                new_cost = cost + 1
+            else:
+                new_cost = cost + path2[step - 1].edges[path2[step].ID][1] #edge cost
+            
+        if new_cost not in path2:
+            path_table_2[new_cost] = [] # agent, loc, time_cost
+        path_table_2[new_cost].append(path2[step]) # agent, loc, time_cost
+
+    # Vertex Collision
+    for time_cost, loc in enumerate(path_table_2):
+            print("time_cost, loc: ", time_cost, loc)
+            if time_cost in path_table_1:
+                if loc == path_table_1[time_cost]:
+                    return [loc, time_cost]
+    
+    # Edge Collision
+    for step in range(len(path_table_2)):
+        if step == 0:
+            cost = 0
+            new_cost = 0
+        else:
+            if path2[step - 1].ID == path2[step].ID: #same node, wait
+                new_cost = cost + 1
+            else:
+                curr_a = path2[step - 1]
+                curr_b = path2[step]
+                new_cost = cost + curr_a.edges[curr_b.ID][1] #edge cost
+
+                print("curr_a: ", curr_a)
+                if curr_a.ID in path_table_1:
+                    for constraint in path_table_1[curr_a.ID]:
+                        print("constraint: ", constraint)
+                        if len(constraint) > 1 and constraint[0] == curr_b.ID and overlap(constraint[1], [cost, new_cost]):
+                            return [(curr_a, curr_b), new_cost]
+
+    return None #no collisions found
 
 
 def detect_collisions(paths):
@@ -38,8 +96,10 @@ def detect_collisions(paths):
     collisions = []
     for i in range(len(paths)-1):
         for j in range(i+1,len(paths)):
-            c,t = detect_collision(paths[i],paths[j])
-            if c != None: collisions.append({'a1': i, 'a2': j, 'loc': c, 'timestep': t})
+            collision = detect_collision(paths[i],paths[j])
+            if collision:
+                loc, cost = collision
+                collisions.append({'a1': i, 'a2': j, 'loc': loc, 'timestep': cost})
     return collisions
 
 

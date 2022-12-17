@@ -98,7 +98,7 @@ class PrioritizedPlanningSolver(object):
         for time_cost, loc in enumerate(curr_timetable):
             print("time_cost, loc: ", time_cost, loc)
             if time_cost in timetable:
-                # Edge Collision
+                # Vertex Collision
                 if loc == timetable[time_cost]:
                     return [loc, time_cost]
             
@@ -128,19 +128,6 @@ class PrioritizedPlanningSolver(object):
         start_time = timer.time()
         result = []
         constraints = []
-        """
-        {'agent': 0, 'loc': [(1,5)], 'timestep': 4}          1.2 constraint
-        {'agent': 1, 'loc': [(1,2), (1,3)], 'timestep': 1}   1.3 constraint
-        {'agent': 0, 'loc': [(1,5)], 'timestep': 10}         1.4 constraint
-
-        1.5 constraints
-        {'agent': 1, 'loc': [(1,4)], 'timestep': 3},
-        {'agent': 1, 'loc': [(1,4), (1,3)], 'timestep': 3},
-        {'agent': 1, 'loc': [(1,3)], 'timestep': 2},
-        {'agent': 1, 'loc': [(1,4)], 'timestep': 2},
-        {'agent': 1, 'loc': [(1,2)], 'timestep': 2}
-        """
-
         for i in range(self.num_of_agents):  # Find path for each agent
             ##############################
             # Task 2: Add constraints here
@@ -175,7 +162,6 @@ class PrioritizedPlanningSolver(object):
         print("Sum of costs:    {}".format(get_sum_of_cost(result)))
         print("Paths in the solution:")
 
-        print(result)
         for agent in range(self.num_of_agents):
             path_str = ""
             for node in result[agent]:
