@@ -155,25 +155,37 @@ def get_path(goal_node):
 
 
 def is_constrained(curr_loc, next_loc, next_time, constraint_table):
-    if constraint_table == None: return False #no constraint table
+    print("is_constrained ? \n")
+    if constraint_table == {}:
+        print("No table")
+        return False
+
+    print("constraint_table")
+    print(constraint_table)
 
     constraints = constraint_table.get(next_time)
-    if constraints == None: return False #no constraints at this time
+    if constraints == None:
+        print("No")
+        return False
 
     for i in range(len(constraints)):
-        c = constraints[i]
-        if len(c['loc']) == 1: #vertex constraint
-            if (c['positive'] == True) and (next_loc != c['loc'][0]):
+        constraint = constraints[i]
+        print("constraint: ", constraint)
+
+        loc = constraint['loc']
+        
+        if type(loc) != list: #vertex constraint
+            if (constraint['positive'] == True) and (next_loc != loc):
                 return True #pos constraint
 
-            elif next_loc == c['loc'][0]:
+            elif next_loc == loc:
                 return True #neg constraint
 
         else: #edge constraint
-            if (c['positive'] == True) and (next_loc != c['loc'][1] or curr_loc != c['loc'][0]):
+            if (constraint['positive'] == True) and (next_loc != constraint['loc'][1] or curr_loc != c['loc'][0]):
                 return True #pos constraint
             
-            elif next_loc == c['loc'][1] and curr_loc == c['loc'][0]:
+            elif next_loc == constraint['loc'][1] and curr_loc == constraint['loc'][0]:
                 return True #neg constraint
     
     return False
@@ -204,9 +216,9 @@ def get_earliest_goal_timestep(agent, goal_loc, constraints):
     max_timestep = 0
     for constraint in constraints:
         if constraint['agent'] == agent:
-            constraint_next_loc = constraint['loc'][0]
-            if len(constraint['loc']) > 1:
-                constraint_next_loc = constraint['loc'][1]
+            constraint_next_loc = constraint['loc']
+            if type(constraint_next_loc) == list:
+                constraint_next_loc = constraint_next_loc[1]
             
             time = constraint['timestep']
             if constraint_next_loc == goal_loc:
@@ -228,6 +240,10 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     ##############################
     # Task 1.1: Extend the A* search to search in the space-time domain
     #           rather than space domain, only.
+
+    print("\nconstraints")
+    print(constraints)
+
     constraint_table = build_constraint_table(constraints, agent)
     print("\nconstraint_table")
     print(constraint_table)

@@ -127,13 +127,6 @@ def paths_violate_constraint(constraint, paths):
     print()
     return result
 
-def clone(ar): #creates a deep copy of an array
-    new_ar = list()
-    for i in range(len(ar)):
-        new_ar.append(ar[i])
-    return new_ar
-
-
 class CBSSolver(object):
     """The high-level search of CBS."""
 
