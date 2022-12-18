@@ -1,7 +1,7 @@
 import time as timer
 import heapq
 from random import randint #randint(0,1) for 4.2
-from single_agent_planner import compute_heuristics, a_star, get_sum_of_cost, print_paths
+from single_agent_planner import compute_heuristics, a_star, get_sum_of_cost, print_paths, get_path_table
 from graph import *
 import copy
 
@@ -13,23 +13,6 @@ def overlap(curr_time, constraint_time):
         return True
     return False
 
-def get_path_table(path):
-    table = {}
-    for step in range(len(path)):
-        if step == 0:
-            cost = 0
-            new_cost = 0
-        else:
-            if path[step - 1].ID == path[step].ID: #same node, wait
-                new_cost = cost + 1
-            else:
-                new_cost = cost + path[step - 1].edges[path[step].ID][1] #edge cost
-
-        if new_cost not in table:
-            table[new_cost] = [] # agent, loc, time_cost
-        table[new_cost].append(path[step]) # agent, loc, time_cost
-    
-    return table
 
 def detect_collision(path1, path2):
     ##############################
@@ -157,9 +140,8 @@ def paths_violate_constraint(constraint, paths, path_tables):
     rst = []
     for i in range(len(paths)):
         if i == constraint['agent']:
-            continue
-        curr = get_location(paths[i], constraint['timestep'])
-        prev = get_location(paths[i], constraint['timestep'] - 1)
+            continue        
+        prev, curr = get_location(paths[i], constraint['timestep'])
         if len(constraint['loc']) == 1:  # vertex constraint
             if constraint['loc'][0] == curr:
                 rst.append(i)
