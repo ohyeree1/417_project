@@ -184,8 +184,6 @@ def is_constrained(curr_loc, next_loc, curr_time, next_time, constraint_table):
                     return True
         else:
             for constraint in constraints:
-                print("is_constrained, constraint: ", constraint)
-                print()
                 if constraint['positive']:
                     continue
                 constraint_time = constraint['timestep']
@@ -271,14 +269,17 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
         if curr_node == goal_loc and curr['time'] >= earliest_goal_timestep:
             return get_path(curr)
 
+        print("node id: ", curr_node.ID)
         neighbors = curr_node.edges
         neighbors[curr_node.ID] = [curr_node, 1]    # add wait cost option
 
         for neighbor in neighbors:
             if neighbor is None:
                 continue
+            print("neighbor: ", neighbor)
             child_node = neighbors[neighbor][0]
             new_cost = curr_node.get_cost(child_node)[1]
+            print("new cost: ", new_cost)                   # TO DO: Why does it never choose to wait?
             child_cost = curr['g_val'] + new_cost
 
             if is_constrained(curr['loc'], child_node, curr['g_val'], child_cost, constraint_table):

@@ -256,10 +256,7 @@ class CBSSolver(object):
 
                 else:   # Standard Splitting
                     agent = constraint['agent']
-                    print("\nUsing Standard Splitting")
-                    print("constraint: ", constraint)
-                    print()
-
+                    print("\nUsing Standard Splitting or Disjoint with negative constraint")
                     path = a_star(self.my_map, self.starts[agent], self.goals[agent], self.heuristics[agent], agent, child_node['constraints'])
 
                     if path:
