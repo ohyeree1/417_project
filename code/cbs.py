@@ -214,15 +214,6 @@ class CBSSolver(object):
                 constraints = disjoint_splitting(collision)
             else:
                 constraints = standard_splitting(collision)
-            
-            print("collision")
-            print(collision)
-            print("constraints")
-            print(constraints)
-
-            print("node")
-            print(node)
-            print()
 
             for constraint in constraints:
                 if constraint in node['constraints']:

@@ -49,7 +49,7 @@ testGraphs/graph52.txt,303
 testGraphs/graph53.txt,203
 testGraphs/graph54.txt,202
 testGraphs/graph55.txt,174
-testGraphs/graph56.txt,210
+testGraphs/graph56.txt,211
 testGraphs/graph57.txt,155
 testGraphs/graph58.txt,150
 testGraphs/graph59.txt,155
@@ -73,7 +73,7 @@ testGraphs/graph74.txt,774
 testGraphs/graph75.txt,750
 testGraphs/graph76.txt,1722
 testGraphs/graph77.txt,1794
-testGraphs/graph78.txt,1489
+testGraphs/graph78.txt,1490
 testGraphs/graph79.txt,1302
 testGraphs/graph8.txt,14
 testGraphs/graph80.txt,1596
