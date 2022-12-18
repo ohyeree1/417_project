@@ -151,11 +151,11 @@ def get_path(goal_node):
 
 
 def is_constrained(curr_loc, next_loc, next_time, constraint_table):
-    print("is_constrained ? \n")
+    print("is_constrained ?")
     # {6: [{'agent': 24, 'loc':Node, 'timestep': 6, 'positive': False}
 
     if constraint_table == {}:
-        print("No table")
+        print("Empty constraint_table")
         return False
 
     print("constraint_table")
@@ -179,12 +179,15 @@ def is_constrained(curr_loc, next_loc, next_time, constraint_table):
                     constraint_next_loc = constraint['loc'][1]
                     if time >= constraint_time[0] and time <= constraint_time[1] and curr_loc == constraint_next_loc and next_loc == constraint_prev_loc:
                         # Edge
+                        print("is_constrained: Edge Constraint found")
                         return True
                     if prev_time >= constraint_time[0] and prev_time <= constraint_time[1] and curr_loc == constraint_next_loc and next_loc == constraint_prev_loc:
                         # Edge
+                        print("is_constrained: Edge Constraint found")
                         return True
         prev_time = time
 
+    print("is_constrained: False")
     return False
 
 
