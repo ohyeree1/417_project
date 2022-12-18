@@ -3,6 +3,7 @@ import heapq
 from random import randint #randint(0,1) for 4.2
 from single_agent_planner import compute_heuristics, a_star, get_sum_of_cost, print_paths
 from graph import *
+import copy
 
 
 def overlap(curr_time, constraint_time):
@@ -167,10 +168,10 @@ def paths_violate_constraint(constraint, paths):
                 rst.append(i)
     return rst
 
-def checkIfNew(x,constraints): #check if x is not in list of constraints yet
-    for i in range(len(constraints)):
-        if x == constraints[i]: return False
-    return True
+# def checkIfNew(x,constraints): #check if x is not in list of constraints yet
+#     for i in range(len(constraints)):
+#         if x == constraints[i]: return False
+#     return True
 
 def clone(ar): #creates a deep copy of an array
     new_ar = list()
@@ -230,16 +231,11 @@ class CBSSolver(object):
         """
 
         self.start_time = timer.time()
-
-        # Generate the root node
-        # constraints   - list of constraints
-        # paths         - list of paths, one for each agent
-        #               [[(x11, y11), (x12, y12), ...], [(x21, y21), (x22, y22), ...], ...]
-        # collisions     - list of collisions in paths
         root = {'cost': 0,
                 'constraints': [],
                 'paths': [],
                 'collisions': []}
+    
         for i in range(self.num_of_agents):  # Find initial path for each agent
             path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
                           i, root['constraints'])
@@ -249,77 +245,46 @@ class CBSSolver(object):
 
         root['cost'] = get_sum_of_cost(root['paths'])
         root['collisions'] = detect_collisions(root['paths'])
+        print("collisions: ", root['collisions'])
+
         self.push_node(root)
 
-        constraintSplit = None
+        while len(self.open_list) > 0:
+            node = self.pop_node()
 
-        while True:
-            n = self.pop_node()
-            if n == None: 
-                raise BaseException('No solutions') #no solution found
-                
-            if len(n['collisions']) == 0: #solution found 
-                self.print_results(n)
-                self.runtime = timer.time() - self.start_time
-                return n['paths']
+            if len(node['collisions']) == 0:
+                self.print_results(node)
+                return node['paths']
+            
+            collision = node['collisions'][0]
+        
+        if disjoint:
+            constraints = disjoint_splitting(collision)
+        else:
+            constraints = standard_splitting(collision)
+        
+        for constraint in constraints:
+            child_node = copy.deepcopy(node)
+            if constraint not in child_node['constraints']:
+                child_node['constraints'].append(constraint)
+            else:
+                continue
+        
+            # deal with positive constraints
 
-            # if disjoint: #disjoint splitting case
-            #     constraintSplit = disjoint_splitting(n['collisions'][0])
-            #     for j in range(2):
-            #         newConstraint = constraintSplit[j]
-            #         if checkIfNew(newConstraint,n['constraints']) == False: continue #duplicate
+            # else standard splitting
+            agent = constraint['agent']
+            path = a_star(self.my_map, self.starts[agent], self.goals[agent], self.heuristics[agent], agent, child_node['constraints'])
 
-            #         if newConstraint['positive'] == True: #positive case
-            #             q = {'cost': 0, 'constraints': clone(n['constraints']), 'paths': clone(n['paths']), 'collisions': []}
-            #             q['constraints'].append(newConstraint)
-                
-            #             #positive constraint agents (everything violating the positive constraint needs to be adjusted)
-            #             pos_agents = paths_violate_constraint(newConstraint,q['paths'])
-            #             possible = True
-            #             for s in range(len(pos_agents)):
-            #                 pAgent = pos_agents[s]
-            #                 q['constraints'].append({'agent': pAgent, 'loc': newConstraint['loc'], 'timestep': newConstraint['timestep'], 'positive': False}) #implied negative constraint
-            #                 q['paths'][pAgent] = a_star(self.my_map, self.starts[pAgent], self.goals[pAgent], self.heuristics[pAgent], pAgent, q['constraints'])
-            #                 if q['paths'][pAgent] == None: #no path for a positive agent 
-            #                     possible = False
-            #                     break
-            #             if possible == False: continue #failed path was found
+            if path:
+                child_node['paths'][agent] = path
+                child_node['collisions'] = detect_collisions(child_node['paths'])
+                child_node['cost'] = get_sum_of_cost(child_node['paths'])
+                self.push_node(child_node)
+        
+        raise BaseException("No Solution")
 
-            #             # q is a possible solution, add to list
-            #             q['collisions'] = detect_collisions(q['paths'])
-            #             q['cost'] = get_sum_of_cost(q['paths'])
-            #             self.push_node(q)
-                
-            #         else: #negative case, same as normal CBS
-            #             q = {'cost': 0, 'constraints': clone(n['constraints']), 'paths': clone(n['paths']), 'collisions': []}
-            #             q['constraints'].append(newConstraint) 
-            #             #adjust agent's path
-            #             a = newConstraint['agent']
-            #             q['paths'][a] = a_star(self.my_map, self.starts[a], self.goals[a], self.heuristics[a], a, q['constraints'])
-            #             if q['paths'][a] != None:
-            #                 q['collisions'] = detect_collisions(q['paths'])
-            #                 q['cost'] = get_sum_of_cost(q['paths'])
-            #                 self.push_node(q)
-                     
-            # else: #normal splitting case 
-            constraintSplit = standard_splitting(n['collisions'][0])
-            print("constraintSplit")
-            print(constraintSplit)
-            print()
 
-            for i in range(2):
-                newConstraint = constraintSplit[i]
-                if checkIfNew(newConstraint,n['constraints']): #not duplicate
-                    q = {'cost': 0, 'constraints': clone(n['constraints']), 'paths': clone(n['paths']), 'collisions': []}
-                    q['constraints'].append(newConstraint) 
-                    #adjust agent's path
-                    a = newConstraint['agent']
-                    q['paths'][a] = a_star(self.my_map, self.starts[a], self.goals[a], self.heuristics[a], a, q['constraints'])
-                    if q['paths'][a] != None:
-                        q['collisions'] = detect_collisions(q['paths'])
-                        q['cost'] = get_sum_of_cost(q['paths'])
-                        self.push_node(q)
-                            
     def print_results(self, node):
         print("\n Found a solution! \n")
         CPU_time = timer.time() - self.start_time
