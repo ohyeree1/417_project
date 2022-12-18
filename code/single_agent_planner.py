@@ -97,10 +97,6 @@ def build_constraint_table(constraints, agent):
             if type(time) == list:
                 time = time[1]
 
-            loc = constraint['loc']
-            if type(loc) == list:
-                loc = loc[1]
-            
             if time not in table:
                 table[time] = []
             table[time].append(constraint)
@@ -156,6 +152,8 @@ def get_path(goal_node):
 
 def is_constrained(curr_loc, next_loc, next_time, constraint_table):
     print("is_constrained ? \n")
+    # {6: [{'agent': 24, 'loc':Node, 'timestep': 6, 'positive': False}
+
     if constraint_table == {}:
         print("No table")
         return False
@@ -163,33 +161,32 @@ def is_constrained(curr_loc, next_loc, next_time, constraint_table):
     print("constraint_table")
     print(constraint_table)
 
-    constraints = constraint_table.get(next_time)
-    if constraints == None:
-        print("No")
-        return False
+    prev_time = 0
+    for time, constraints in constraint_table.items():
+        if time == next_time:
+            for constraint in constraints:
+                loc = constraint['loc']
+                if type(loc) == list:
+                    loc = loc[1]
+                if loc == next_loc:
+                    print("is_constrained: Vertext Constraint found")
+                    return True
+        else:
+            for constraint in constraints:
+                constraint_time = constraint['timestep']
+                if type(constraint_time) == list:
+                    constraint_prev_loc = constraint['loc'][0]
+                    constraint_next_loc = constraint['loc'][1]
+                    if time >= constraint_time[0] and time <= constraint_time[1] and curr_loc == constraint_next_loc and next_loc == constraint_prev_loc:
+                        # Edge
+                        return True
+                    if prev_time >= constraint_time[0] and prev_time <= constraint_time[1] and curr_loc == constraint_next_loc and next_loc == constraint_prev_loc:
+                        # Edge
+                        return True
+        prev_time = time
 
-    for i in range(len(constraints)):
-        constraint = constraints[i]
-        print("constraint: ", constraint)
-
-        loc = constraint['loc']
-        
-        if type(loc) != list: #vertex constraint
-            if (constraint['positive'] == True) and (next_loc != loc):
-                return True #pos constraint
-
-            elif next_loc == loc:
-                return True #neg constraint
-
-        else: #edge constraint
-            if (constraint['positive'] == True) and (next_loc != constraint['loc'][1] or curr_loc != c['loc'][0]):
-                return True #pos constraint
-            
-            elif next_loc == constraint['loc'][1] and curr_loc == constraint['loc'][0]:
-                return True #neg constraint
-    
     return False
-    
+
 
 def determine_earliest_goal(constraint_table):
     # finds the latest time for any constraint in the table, path must be at least this long
