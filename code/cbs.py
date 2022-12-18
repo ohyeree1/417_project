@@ -12,7 +12,24 @@ def overlap(curr_time, constraint_time):
     if (a <= ca and b >= ca) or (a >= ca and cb >= a):
         return True
     return False
+
+def get_path_table(path):
+    table = {}
+    for step in range(len(path)):
+        if step == 0:
+            cost = 0
+            new_cost = 0
+        else:
+            if path[step - 1].ID == path[step].ID: #same node, wait
+                new_cost = cost + 1
+            else:
+                new_cost = cost + path[step - 1].edges[path[step].ID][1] #edge cost
+
+        if new_cost not in table:
+            table[new_cost] = [] # agent, loc, time_cost
+        table[new_cost].append(path[step]) # agent, loc, time_cost
     
+    return table
 
 def detect_collision(path1, path2):
     ##############################
@@ -22,8 +39,10 @@ def detect_collision(path1, path2):
     #           An edge collision occurs if the robots swap their location at the same timestep.
     #           You should use "get_location(path, t)" to get the location of a robot at time t.
 
-    path_table_1 = {}
+    path_table_1 = get_path_table(path1)
+    path_table_2 = get_path_table(path2)
     edge_constraint_1 = {}
+
     for step in range(len(path1)):
         if step == 0:
             cost = 0
@@ -40,27 +59,10 @@ def detect_collision(path1, path2):
             if b not in edge_constraint_1:
                 edge_constraint_1[b] = []
             # agent cannot move from b to a if its time interval intersects with [cost, new_cost]
-            edge_constraint_1[b].append((a, [cost, new_cost])) 
+            edge_constraint_1[b].append((path1[step - 1], [cost, new_cost])) 
         
-        if new_cost not in path_table_1:
-            path_table_1[new_cost] = [] # agent, loc, time_cost
-        path_table_1[new_cost].append(path1[step]) # agent, loc, time_cost
-
-    path_table_2 = {}
-    for step in range(len(path2)):
-        if step == 0:
-            cost = 0
-            new_cost = 0
-        else:
-            if path2[step - 1].ID == path2[step].ID: #same node, wait
-                new_cost = cost + 1
-            else:
-                new_cost = cost + path2[step - 1].edges[path2[step].ID][1] #edge cost
-            
-        if new_cost not in path2:
-            path_table_2[new_cost] = [] # agent, loc, time_cost
-        path_table_2[new_cost].append(path2[step]) # agent, loc, time_cost
-
+    print("path_table_2")
+    print(path_table_2)
     # Vertex Collision
     for time_cost, loc in enumerate(path_table_2):
             print("time_cost, loc: ", time_cost, loc)
@@ -81,11 +83,8 @@ def detect_collision(path1, path2):
                 curr_b = path2[step]
                 new_cost = cost + curr_a.edges[curr_b.ID][1] #edge cost
 
-                print("curr_a: ", curr_a)
-                print("path_table_1: ", path_table_1)
                 if curr_a.ID in edge_constraint_1:
                     for constraint in edge_constraint_1[curr_a.ID]:
-                        print("constraint: ", constraint)
                         if len(constraint) > 1 and constraint[0] == curr_b.ID and overlap(constraint[1], [cost, new_cost]):
                             return [(curr_a, curr_b), new_cost]
 
@@ -141,9 +140,11 @@ def disjoint_splitting(collision):
     a,b = True,False
     r = randint(0,1)
     if r == 0: a,b = False,True
+
     if len(collision['loc']) == 1: #vertex collision
         return [{'agent': collision['a1'], 'loc': collision['loc'], 'timestep': collision['timestep'], 'positive': a},
                 {'agent': collision['a2'], 'loc': collision['loc'], 'timestep': collision['timestep'], 'positive': b}]
+
     else: #edge collision
         return [{'agent': collision['a1'], 'loc': [collision['loc'][0],collision['loc'][1]], 'timestep': collision['timestep'], 'positive': a},
                 {'agent': collision['a2'], 'loc': [collision['loc'][1],collision['loc'][0]], 'timestep': collision['timestep'], 'positive': b}]
@@ -151,7 +152,7 @@ def disjoint_splitting(collision):
 
 #insert paths_violate_constraint() here
 
-def paths_violate_constraint(constraint, paths):
+def paths_violate_constraint(constraint, paths, path_tables):
     assert constraint['positive'] is True
     rst = []
     for i in range(len(paths)):
@@ -274,6 +275,7 @@ class CBSSolver(object):
             if disjoint and constraint['positive']:
                 print("Use Disjoint Splitting. constraint:")
                 print(constraint)
+                print()
             
             else:   # Standard Splitting
                 agent = constraint['agent']
