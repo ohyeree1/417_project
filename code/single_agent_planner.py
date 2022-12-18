@@ -19,6 +19,29 @@ def print_paths(paths): #prints out the paths in a more understandable way
             path_str += " "
         print("Agent " + str(path) + ": ", path_str)
 
+def get_path_table(path):
+    cost_table = {}
+    node_table = {}
+    for step in range(len(path)):
+        if step == 0:
+            cost = 0
+            new_cost = 0
+            prev =  Node(-1)  # dummy 
+            curr = path[step]
+        else:
+            curr = path[step]
+            if prev.ID == curr.ID: #same node, wait
+                new_cost = cost + 1
+            else:
+                new_cost = cost + prev.edges[curr.ID][1] #edge cost
+
+        cost_table[new_cost] = {'loc': curr, 'prev': prev, 'prev_cost': cost}
+        node_table[curr] = {'cost': new_cost, 'prev': prev, 'prev_cost': cost}
+        
+        prev = curr
+        cost = new_cost
+
+    return cost_table, node_table
 
 def compute_heuristics(node_list, goal_node):
     # Use Dijkstra to build a shortest-path tree rooted at the goal location
@@ -86,13 +109,30 @@ def build_constraint_table(constraints, agent):
     return table
 
 
-# def get_location(path, time):
-#     if time < 0:
-#         return path[0]
-#     elif time < len(path):
-#         return path[time]
-#     else:
-#         return path[-1]  # wait at the goal location
+def get_location(path, time):
+    table = get_path_table(path)
+    max_time = list(table.keys())[-1]
+
+    if time < 0:
+        return path[0]
+    elif time < max_time:
+        return path[time]
+    else:
+        return path[max_time]  # wait at the goal location
+
+def get_prev_location(path, time):
+    table = get_path_table(path)
+    max_time = list(table.keys())[-1]
+    
+    if time < 0:
+        return path[0]
+    elif time < max_time:
+        for index in range(time - 1, 0, -1):
+            if index in table:
+                return path[index]
+        return path[time]
+    else:
+        return path[max_time]  # wait at the goal location
 
 
 def get_path(goal_node):
