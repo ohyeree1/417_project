@@ -249,7 +249,7 @@ class CBSSolver(object):
 
         self.push_node(root)
 
-        while len(self.open_list) > 0:
+        while len(self.open_list) > 0 and len(self.open_list) < 1000:
             node = self.pop_node()
 
             if len(node['collisions']) == 0:
@@ -269,20 +269,24 @@ class CBSSolver(object):
                 child_node['constraints'].append(constraint)
             else:
                 continue
-        
+
             # deal with positive constraints
+            if disjoint and constraint['positive']:
+                print("Use Disjoint Splitting. constraint:")
+                print(constraint)
+            
+            else:   # Standard Splitting
+                agent = constraint['agent']
+                path = a_star(self.my_map, self.starts[agent], self.goals[agent], self.heuristics[agent], agent, child_node['constraints'])
 
-            # else standard splitting
-            agent = constraint['agent']
-            path = a_star(self.my_map, self.starts[agent], self.goals[agent], self.heuristics[agent], agent, child_node['constraints'])
-
-            if path:
-                child_node['paths'][agent] = path
-                child_node['collisions'] = detect_collisions(child_node['paths'])
-                child_node['cost'] = get_sum_of_cost(child_node['paths'])
-                self.push_node(child_node)
+                if path:
+                    child_node['paths'][agent] = path
+                    child_node['collisions'] = detect_collisions(child_node['paths'])
+                    child_node['cost'] = get_sum_of_cost(child_node['paths'])
+                    self.push_node(child_node)
         
-        raise BaseException("No Solution")
+        print("No Solution")
+        return []
 
 
     def print_results(self, node):
