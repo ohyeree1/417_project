@@ -22,7 +22,7 @@ def cost_of_path(p): #return the cost of a single given path
         else:
             c += p[k].edges[p[k+1].ID][1] #edge cost
     return c
-    
+
 def count_collisions(self, agent1, agent2): #return all collisions between two agents given their location tables
     collisions = 0
     end_time = max(agent1[1],agent2[1])
@@ -80,7 +80,6 @@ def create_location_table(self,path): #return a dict for where an agent is based
 def find_path(my_map,h,paths,start,finish,agent):
     #returns a possible path for an agent based on a stocastic walk
     """
-    TODO: refactor collision methods to be out of the LNS object
     my_map -> full graph object
     h -> heuristic function, enter any h[node] to get its cost
     paths -> list of location dictionaries for each agent
@@ -88,5 +87,27 @@ def find_path(my_map,h,paths,start,finish,agent):
     finish -> goal node (h[finish] == 0)
     agent -> int value for the agent being fixed, ignore paths[agent] in collision detection
     """
-    path = list()
+    # initialize path with starting spot
+    path = list() # list of nodes detailing the path
+    path.append(start)
+    loc = start
+
+    # TODO: determine minimal length to prevent idle collision
+    # (track last collision between a pair of agents?)
+
+
+    # While not at goal, look at all moves in position
+
+
+    # find which moves cause no collisions (including waiting), if any, else minimal collisions
+
+
+    # rank minimal collision moves by A* value
+
+
+    # pseudorandomly pick one
+
+
+    # if at goal AND min time for the path is reached, then return the path
+
     return path
