@@ -240,7 +240,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
         agent       - the agent that is being re-planned
         constraints - constraints defining where robot should or cannot go at each timestep
     """
-    print("Single Agent Planner: a_start")
+    #print("Single Agent Planner: a_start")
 
     ##############################
     # Task 1.1: Extend the A* search to search in the space-time domain

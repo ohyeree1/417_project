@@ -5,7 +5,7 @@ from pathlib import Path
 from cbs import CBSSolver
 from independent import IndependentSolver
 from prioritized import PrioritizedPlanningSolver
-from large_neighbourhood import LargeNeighbourhoodSolver
+from large_neighbourhood import *
 from graph import *
 #from visualize import Animation
 from single_agent_planner import get_sum_of_cost
@@ -93,7 +93,7 @@ if __name__ == '__main__':
     output_file = str(args.solver)+"result.txt"
     result_file = open(output_file, "w", buffering=1)
     
-    print_problem = True #set to False for full testing, printing out each map takes up a lot of space
+    print_problem = False #set to False for full testing, printing out each map takes up a lot of space
 
     for file in sorted(glob.glob(args.instance)):
 

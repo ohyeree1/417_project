@@ -1,0 +1,24 @@
+N = node count, K = agent count, D = edge density
+CBSStandard results:
+
+Clear rates:
+80 of 80 total maps were passed
+N = 10, K = 2: 20 of 20 cleared
+N = 50, K = 8: 20 of 20 cleared
+N = 250, K = 20: 20 of 20 cleared
+Alternate N = 50: 10 of 10 cleared
+Alternate N = 250: 10 of 10 cleared
+
+D = 1.1: 12 of 12 cleared
+D = 1.25: 12 of 12 cleared
+D = 1.5: 12 of 12 cleared
+D = 2: 12 of 12 cleared
+D = 3: 12 of 12 cleared
+
+Averages (only counts passed cases):
+N = 10, K = 2: 10.55
+N = 50, K = 8: 78.0
+N = 250, K = 20: 316.65
+Alternate N = 50: 182.9
+Alternate N = 250: 1174.4
+
