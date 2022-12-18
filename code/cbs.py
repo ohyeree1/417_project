@@ -52,26 +52,6 @@ def detect_collision(path1, path2):
                 print("Edge Collision")
                 return [[prev_1, node], [value_1['prev_cost'], value_1['cost']]]
 
-
-    # for time_cost, value_1 in enumerate(path_tab)
-    # for step in range(len(path_table_2)):
-    #     if step == 0:
-    #         cost = 0
-    #         new_cost = 0
-    #     else:
-    #         if path2[step - 1].ID == path2[step].ID: #same node, wait
-    #             new_cost = cost + 1
-    #         else:
-    #             curr_a = path2[step - 1]
-    #             curr_b = path2[step]
-    #             new_cost = cost + curr_a.edges[curr_b.ID][1] #edge cost
-
-    #             if curr_a.ID in edge_constraint_1:
-    #                 for constraint in edge_constraint_1[curr_a.ID]:
-    #                     if len(constraint) > 1 and constraint[0] == curr_b.ID and overlap(constraint[1], [cost, new_cost]):
-    #                         print("EDGE COLLISIONS FOUND")
-    #                         return [(curr_a, curr_b), new_cost]
-
     return None #no collisions found
 
 
@@ -271,7 +251,7 @@ class CBSSolver(object):
                     }
                     if new_constraint not in child_node['constraints']:
                         child_node['constraints'].append(new_constraint)
-                
+
                 for negative_agent in negative_agents:
                     path = a_star(self.my_map, self.starts[negative_agent], self.goals[negative_agent], self.heuristics[negative_agent], negative_agent, child_node['constraints'])
                     if path:

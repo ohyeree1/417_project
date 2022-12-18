@@ -88,23 +88,22 @@ def compute_heuristics(node_list, goal_node):
 
 
 def build_constraint_table(constraints, agent):
-    ##############################
-    # Task 1.2/1.3: 
-    # first dict is for vertex constraints, second dict is for edge constraints
-    # format is table[t] = list(constraint), where t is the timestep.
-    print("build_constraint_table")
-    print("constraints")
-    print(constraints)
-    print("agent: ", agent)
-    print()
-
     table = {} 
     for i in range(len(constraints)):
         constraint = constraints[i]
         if constraint['agent'] == agent: #add constraint
-            if table.get(constraint['timestep']) == None:
-                table[constraint['timestep']] = list()
-            table[constraint['timestep']].append(constraint)
+            time = constraint['timestep']
+
+            if type(time) == list:
+                time = time[1]
+
+            loc = constraint['loc']
+            if type(loc) == list:
+                loc = loc[1]
+            
+            if time not in table:
+                table[time] = []
+            table[time].append(constraint)
 
     return table
 
@@ -200,9 +199,12 @@ def get_earliest_goal_timestep(agent, goal_loc, constraints):
             if len(constraint['loc']) > 1:
                 constraint_next_loc = constraint['loc'][1]
             
+            time = constraint['timestep']
             if constraint_next_loc == goal_loc:
-                max_timestep = max(max_timestep, constraint['timestep'] + 1)
-    
+                if type(time) == list:
+                    time = time[1]
+                max_timestep = max(max_timestep, time + 1)
+
     return max_timestep
 
 def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
