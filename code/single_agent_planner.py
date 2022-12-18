@@ -34,6 +34,8 @@ def compute_heuristics(node_list, goal_node):
         (cost, curr_node, curr, visited) = heapq.heappop(open_list)
 
         neighbors = curr_node.edges
+        neighbors[curr_node.ID] = [curr_node, 1]    # add wait cost option (may not be necessary here)
+
         for neighbor in neighbors:
             neighbor_node = neighbors[neighbor][0]
             new_cost = neighbors[neighbor][1]
@@ -49,7 +51,6 @@ def compute_heuristics(node_list, goal_node):
                 existing_node = closed_list[child_loc]
                 if existing_node['cost'] > child_cost:
                     closed_list[child_loc] = child
-                    # open_list.delete((existing_node['cost'], existing_node['loc'], existing_node))
                     heapq.heappush(open_list, (child_cost, child_loc, child, visited))
             else:
                 closed_list[child_loc] = child
@@ -60,11 +61,6 @@ def compute_heuristics(node_list, goal_node):
     for loc, node in closed_list.items():
         h_values[loc] = node['cost']
 
-    """ debug for heuristic values
-    print("h_values from compute heuristics: ")
-    print(h_values)
-    print()
-    """
     return h_values
 
 
@@ -73,23 +69,30 @@ def build_constraint_table(constraints, agent):
     # Task 1.2/1.3: 
     # first dict is for vertex constraints, second dict is for edge constraints
     # format is table[t] = list(constraint), where t is the timestep.
+    print("build_constraint_table")
+    print("constraints")
+    print(constraints)
+    print("agent: ", agent)
+    print()
 
     table = {} 
     for i in range(len(constraints)):
-        x = constraints[i]
-        if x['agent'] == agent: #add constraint
-            if table.get(x['timestep']) == None: table[x['timestep']] = list()
-            table[x['timestep']].append(x)
+        constraint = constraints[i]
+        if constraint['agent'] == agent: #add constraint
+            if table.get(constraint['timestep']) == None:
+                table[constraint['timestep']] = list()
+            table[constraint['timestep']].append(constraint)
+
     return table
 
 
-def get_location(path, time):
-    if time < 0:
-        return path[0]
-    elif time < len(path):
-        return path[time]
-    else:
-        return path[-1]  # wait at the goal location
+# def get_location(path, time):
+#     if time < 0:
+#         return path[0]
+#     elif time < len(path):
+#         return path[time]
+#     else:
+#         return path[-1]  # wait at the goal location
 
 
 def get_path(goal_node):
@@ -104,16 +107,6 @@ def get_path(goal_node):
 
 
 def is_constrained(curr_loc, next_loc, next_time, constraint_table):
-    ##############################
-    # Task 1.2/1.3: 
-    """
-    Constraint table is a dictionary with timestep as key.
-    First find the constraints for current time (if any),
-    then iterate through each constraint.
-    vertex/edge type constraint is determined by loc's length, and
-    positive/negative attribute is added for 4.1.
-    If True is returned, a constraint was violated and this path is discarded.
-    """
     if constraint_table == None: return False #no constraint table
 
     constraints = constraint_table.get(next_time)
@@ -122,11 +115,18 @@ def is_constrained(curr_loc, next_loc, next_time, constraint_table):
     for i in range(len(constraints)):
         c = constraints[i]
         if len(c['loc']) == 1: #vertex constraint
-            if (c['positive'] == True) and (next_loc != c['loc'][0]): return True #pos constraint
-            elif next_loc == c['loc'][0]: return True #neg constraint
+            if (c['positive'] == True) and (next_loc != c['loc'][0]):
+                return True #pos constraint
+
+            elif next_loc == c['loc'][0]:
+                return True #neg constraint
+
         else: #edge constraint
-            if (c['positive'] == True) and (next_loc != c['loc'][1] or curr_loc != c['loc'][0]): return True #pos constraint
-            elif next_loc == c['loc'][1] and curr_loc == c['loc'][0]: return True #neg constraint
+            if (c['positive'] == True) and (next_loc != c['loc'][1] or curr_loc != c['loc'][0]):
+                return True #pos constraint
+            
+            elif next_loc == c['loc'][1] and curr_loc == c['loc'][0]:
+                return True #neg constraint
     
     return False
     
@@ -178,6 +178,8 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     # Task 1.1: Extend the A* search to search in the space-time domain
     #           rather than space domain, only.
     constraint_table = build_constraint_table(constraints, agent)
+    print("constraint_table")
+    print(constraint_table)
 
     open_list = []
     closed_list = dict()
@@ -206,12 +208,13 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
                 continue
             child_node = neighbors[neighbor][0]
             new_cost = curr_node.get_cost(child_node)[1]
+            child_cost = curr['g_val'] + new_cost
 
-            if is_constrained(curr['loc'], child_node, curr['time'] + 1, constraint_table):
+            if is_constrained(curr['loc'], child_node, child_cost, constraint_table):
                 continue
 
             child = {'loc': child_node,
-                    'g_val': curr['g_val'] + new_cost,
+                    'g_val': child_cost,
                     'h_val': h_values[child_node],
                     'parent': curr,
                     'time': curr['time'] + new_cost}
