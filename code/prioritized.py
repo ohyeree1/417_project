@@ -33,40 +33,7 @@ class PrioritizedPlanningSolver(object):
             if collision != None:
                 return collision
 
-<<<<<<< HEAD
-        #print("probs here")
-        curr_timetable = self.build_timetable_for_path(path)
-
-        for time_cost, loc in enumerate(curr_timetable):
-            #print("time_cost, loc: ", time_cost, loc)
-            if time_cost in timetable:
-                # Edge Collision
-                if loc == timetable[time_cost]:
-                    return [loc, time_cost]
-            
-        for step in range(len(path)):
-            if step == 0:
-                cost = 0
-            else:
-                if path[step - 1].ID == path[step].ID: #same node, wait
-                    new_cost = cost + 1
-                else:
-                    curr_a = path[step - 1]
-                    curr_b = path[step]
-                    new_cost = cost + curr_a.edges[curr_b.ID][1] #edge cost
-
-                    #debug for constraints
-                    #print("curr_a: ", curr_a)
-                    #print(edge_constraints)
-                    if curr_a.ID in edge_constraints:
-                        for constraint in edge_constraints[curr_a.ID]:
-                            if constraint[0] == curr_b.ID and self.overlap(constraint[1], [cost, new_cost]):
-                                return [(curr_a, curr_b), new_cost]
-
-        return None #no collisions found
-=======
         return None
->>>>>>> main
 
     def find_solution(self):
         """ Finds paths for all agents from their start locations to their goal locations."""
@@ -104,10 +71,6 @@ class PrioritizedPlanningSolver(object):
         print("Sum of costs:    {}".format(get_sum_of_cost(result)))
         print("Paths in the solution:")
 
-<<<<<<< HEAD
-        #print(result)
-=======
->>>>>>> main
         for agent in range(self.num_of_agents):
             path_str = ""
             for node in result[agent]:

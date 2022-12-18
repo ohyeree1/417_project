@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-testGraphs/test2.txt,8
-=======
 testGraphs/graph1.txt,14
 testGraphs/graph10.txt,15
 testGraphs/graph11.txt,12
@@ -81,4 +78,3 @@ testGraphs/graph79.txt,1458
 testGraphs/graph8.txt,14
 testGraphs/graph80.txt,1753
 testGraphs/graph9.txt,9
->>>>>>> main
