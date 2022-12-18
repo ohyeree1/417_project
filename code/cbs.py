@@ -6,7 +6,7 @@ from graph import *
 import copy
 import sys
 
-sys.setrecursionlimit(2000)
+sys.setrecursionlimit(3000)
 
 def overlap(curr_time, constraint_time):
     a, b = curr_time
