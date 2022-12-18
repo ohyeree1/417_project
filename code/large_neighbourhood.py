@@ -14,15 +14,10 @@ class LargeNeighbourhoodSolver(object):
     """A planner that plans for each robot sequentially."""
 
     def __init__(self, graph):
-        """my_map   - list of lists specifying obstacle positions
-        starts      - [(x1, y1), (x2, y2), ...] list of start locations
-        goals       - [(x1, y1), (x2, y2), ...] list of goal locations
-        """
-
-        self.my_map = graph.nodeList
-        self.starts = list()
-        self.goals = list()
-        self.num_of_agents = graph.agentCount
+        self.my_map = graph.nodeList #graph object containing the map
+        self.starts = list() #starting locations for each agent in order
+        self.goals = list() #ending locations for each agent in order
+        self.num_of_agents = graph.agentCount #number of agents
         for i in range(self.num_of_agents):
             self.starts.append(graph.nodeList[graph.agents[i][0]])
             self.goals.append(graph.nodeList[graph.agents[i][1]])
@@ -169,44 +164,6 @@ class LargeNeighbourhoodSolver(object):
 
         # 5. If no improvment is found after some number of attempts, return solution
         # Arbritarily choosing 5*# of agents
-        """
-        longestPath = 0 #for creating a time limit (2.4)
-        openSpots = self.countOpen(self.my_map)
-
-        for i in range(self.num_of_agents):  # Find path for each agent
-            ##############################
-            # Task 2: Add constraints here
-            #         Useful variables:
-            #            * path contains the solution path of the current (i'th) agent, e.g., [(1,1),(1,2),(1,3)]
-            #            * self.num_of_agents has the number of total agents
-            #            * constraints: array of constraints to consider for future A* searches
-            ##############################
-            path = None
-            while path == None:
-                path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i], i, constraints, openSpots+longestPath)
-                if path is None:
-                    raise BaseException('No solutions')
-                collision_detected = self.find_collision(path,result)
-                if collision_detected != None: 
-                    #collision found, add constraint and try again
-                    path = None
-                    
-                    format is [a,t], a is faulty area
-                    if len(a) == 1, vertex constraint, else edge constraint
-                    (the length part is already figured out by create_constraint_table)
-                    
-                    constraints.append({'agent': i, 'loc': collision_detected[0], 'timestep': collision_detected[1], 'positive': 0})
-
-            # no collision found, add to result
-            result.append(path)
-            longestPath = max(len(path),longestPath)
-            # debug for 2.4
-            print("added path for Agent",i)
-            print(path)
-
-
-            
-        """
         self.CPU_time = timer.time() - start_time
 
         print("\n Found a solution! \n")
