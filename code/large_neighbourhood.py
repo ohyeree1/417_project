@@ -1,7 +1,7 @@
 import time as timer
 from single_agent_planner import *
 from graph import *
-
+from LNSHelper import *
 #template from prioritized.py, adjust as necessary
 """
 test instructions:
@@ -34,64 +34,99 @@ class LargeNeighbourhoodSolver(object):
         for goal in self.goals:
             self.heuristics.append(compute_heuristics(self.my_map, goal))
 
-    def find_collision(self, path, result):
-        if result == []: return None #first path created, no possible collisions
-        path_len = len(path)
+    def count_collisions(self, agent1, agent2): #return all collisions between two agents given their location tables
+        collisions = 0
+        end_time = max(agent1[1],agent2[1])
+        #collisions happening directly on a timestep 
+        for i in range(end_time):
+            a = self.get_location(agent1,i)
+            b = self.get_location(agent2,i)
+            if a == b and len(a) == 1 and len(b) == 1: #vertex collision
+                collisions += 1
+            elif len(a) == 2 and len(b) == 2: #possible edge traversal collision
+                if a[0] == b[1] and b[0] == a[1]: #edge traversal collision
+                    collisions += 1 
+                    """
+                    side effect is that for long edges the collision 
+                    may count multiple times, but does not affect the 
+                    goal of having no collisions in the final solution
+                    """
+            #if lengths differ then no collision as one is one a vertex
+            #and the other is traversing an edge
 
-        #test for vertex constraints (2.1)
-        for i in range(len(result)):
-            test_len = len(result[i])
-            """
-            search through the longer of the two paths,
-            the shorter path's location after ending is
-            just the last coordinate. This prevents
-            agents from moving over those already finished.
-            (2.3)
-            """
-            for j in range(max(path_len,test_len)): 
-                if path[min(j,path_len-1)] == result[i][min(j,test_len-1)]: return [[path[min(j,path_len-1)]],j]
-        
-        #test for edge constraints (2.2)
-        for k in range(len(result)):
-            test_len = len(result[k])
-            for l in range(min(path_len,test_len)-1): 
-                if path[l] == result[k][l+1] and path[l+1] == result[k][l]: return [[path[l],path[l+1]],l+1]
-        
-        return None #no collisions found
+        #collisions happening between two timesteps
+        #only possible case is when two agents swap nodes
+        #via an edge of cost 1, higher cost is caught by direct timestep
 
-    def countOpen(self, my_map): #count number of spots that are not walls (2.4)
-        ans = 0
-        for i in range(len(my_map)):
-            for j in range(len(my_map[i])):
-                if not my_map[i][j]: ans += 1
-        return ans
+        for j in range(end_time-1):
+            a = self.get_location(agent1,j)
+            aa = self.get_location(agent1,j+1)
+            b = self.get_location(agent2,j)
+            bb = self.get_location(agent2,j+1)
+            if max(len(a),len(b),len(aa),len(bb)) == 1 and a == bb and b == aa: #edge 1 collision
+                collisions += 1
+
+        return collisions
+
+    def get_location(self,table,x): #return location at time x given table
+        if x >= table[1]: return table[0][table[1]] #agent has stopped moving
+        else: return table[0][x]
+
+    def create_location_table(self,path): #return a dict for where an agent is based on "time"
+        #first value is a dictionary containing the locations, second value is an int for when the path ends 
+        ans = {}
+        time = 0
+        for i in range(len(path)-1):
+            ans[time] = [path[i].ID]
+            if path[i].ID == path[i+1].ID: #wait
+                time += 1
+            else: #traversing edge
+                edge_cost = path[i].edges[path[i+1].ID][1]
+                for j in range(time+1,time+edge_cost):
+                    ans[j] = [path[i].ID,path[i+1].ID] #in process of traversing two nodes
+                time += edge_cost
+        ans[time] = [path[-1].ID] #last node
+        return [ans,time] #after time agent will be at last node
 
     def find_solution(self):
         """ Finds paths for all agents from their start locations to their goal locations."""
 
         start_time = timer.time()
         result = []
-        constraints = []
-        """
-        General idea:
-        1. create a solution (may have collisions or is suboptimal)
-        2. destroy part of the solution and assume the rest is "optimal" for now
-        3. fix the destroyed part of the solution
-        4. if the repaired version results in a better solution (less collisions or faster), keep it
-        5. repeat until solution is optimal or good enough
-        """
-
 
         # 1. use single agent planner to create a solution
         # if 0 collisions, it's optimal
 
         for i in range(self.num_of_agents):
-            result.append(a_star(self.my_map,self.starts[i],self.goals[i],self.heuristics[i],i,constraints))
+            result.append(a_star(self.my_map,self.starts[i],self.goals[i],self.heuristics[i],i,[]))
 
-        # 2. if there are collisions, choose the path stochastically with the most problems/or slowest and delete it
+        # 1.5. Check if there are collisions, if there aren't any, then this setup is guaranteed to be optimal
+        
+        collisions = 0 #tracks TOTAL number of collisions
+        collision_pair_freq = list() #tracks number of collisions between a pair of agents
+        collision_agent_freq = [0]*self.num_of_agents #tracks number of collisions an agent is involved in
+        for t in range(self.num_of_agents):
+            collision_pair_freq.append([0]*self.num_of_agents)
+        agent_location = [{}]*self.num_of_agents
+        for j in range(self.num_of_agents):
+            agent_location[j] = self.create_location_table(result[j])
+
+        #determine each collision occuring
+        for m in range(self.num_of_agents):
+            for n in range(m+1,self.num_of_agents):
+                pair_collisions = self.find_collisions(agent_location[m],agent_location[n])
+                collision_pair_freq[m][n] += pair_collisions
+                collision_pair_freq[n][m] += pair_collisions
+                collision_agent_freq[n] += pair_collisions
+                collision_agent_freq[m] += pair_collisions
+                collisions += pair_collisions
+                
+        if collisions == 0: #shortest path for each agent is optimal
+            return result
+
+        # 2. Choose the path stochastically with the most problems/or slowest and delete it
         # worst has 50%, 2nd worst 25%, 3rd worst 12.5%, so on until last two have equally small chance
         # For now assume the other paths are optimal
-
 
         # 3. Recreate the path with a stocastic search
         # Assign value to each action based on heuristic value
