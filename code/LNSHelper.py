@@ -14,4 +14,11 @@ def weighted_random(choice_count: int, p: float) -> int:
     return 0
 
 
-
+def cost_of_path(p): #return the cost of a single given path
+    c = 0
+    for k in range(len(p)-1):
+        if p[k].ID == p[k+1].ID: #same node, wait
+            c += 1
+        else:
+            c += p[k].edges[p[k+1].ID][1] #edge cost
+    return c

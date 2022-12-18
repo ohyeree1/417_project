@@ -122,11 +122,39 @@ class LargeNeighbourhoodSolver(object):
                 collisions += pair_collisions
                 
         if collisions == 0: #shortest path for each agent is optimal
+            self.CPU_time = timer.time() - start_time
+
+            print("\n Found a solution! \n")
+            print("CPU time (s):    {:.2f}".format(self.CPU_time))
+            print("Sum of costs:    {}".format(get_sum_of_cost(result)))
+            #print("Paths in the solution:")
+            #print_paths(result)
+            #for j in range(self.num_of_agents):
+                #print("Agent #"+str(j),result[j])
+            #print(result)
             return result
+
+        #independent a* has problems, use stocastic search to fix
+        #find costs of each path first
+        result_costs = list()
+        for pa in range(self.num_of_agents):
+            result_costs.append(cost_of_path(result[pa]))
+        
+
 
         # 2. Choose the path stochastically with the most problems/or slowest and delete it
         # worst has 50%, 2nd worst 25%, 3rd worst 12.5%, so on until last two have equally small chance
         # For now assume the other paths are optimal
+        missCount = 0
+        while missCount < 5*self.num_of_agents: #stop stocastic search after certain number of attempts without improvement
+            path_ratings = list()
+            for q in range(self.num_of_agents):
+                path_ratings.append([collision_agent_freq(q),result_costs[q],q])
+        
+        # order the paths from best to worst (via collisions involved in, then path cost), then pseudorandomly select one to fix
+            path_ratings.sort()
+            agent_to_fix = path_ratings[weighted_random(self.num_of_agents,0.3)][2] #fix result[agent_to_fix]
+        
 
         # 3. Recreate the path with a stocastic search
         # Assign value to each action based on heuristic value
