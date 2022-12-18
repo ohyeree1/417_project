@@ -1,0 +1,6 @@
+testGraphs/graph1.txt,14
+testGraphs/graph10.txt,15
+testGraphs/graph11.txt,12
+testGraphs/graph12.txt,5
+testGraphs/graph13.txt,12
+testGraphs/graph14.txt,13
