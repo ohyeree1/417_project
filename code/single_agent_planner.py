@@ -1,6 +1,11 @@
 import heapq
 from graph import *
 
+def overlap(curr_time, constraint_time):
+    a, b = curr_time
+    ca, cb = constraint_time
+    return max(0, min(b, cb) - max(a, ca)) > 0
+
 def get_sum_of_cost(paths): #returns sum of the cost of paths
     rst = 0
     for path in paths:
@@ -12,12 +17,16 @@ def get_sum_of_cost(paths): #returns sum of the cost of paths
     return rst
 
 def print_paths(paths): #prints out the paths in a more understandable way
-    for path in range(len(paths)):
-        path_str = ""
-        for node in range(len(paths[path])):
-            path_str += str(paths[path][node].ID)
-            path_str += " "
-        print("Agent " + str(path) + ": ", path_str)
+    for num_path in range(len(paths)):
+        print("Agent ", num_path)
+        print_path(paths[num_path])
+
+def print_path(path): #prints out the paths in a more understandable way
+    path_str = ""
+    for node in range(len(path)):
+        path_str += str(path[node].ID)
+        path_str += " "
+    print(": ", path_str)
 
 def get_path_table(path):
     cost_table = {}
@@ -155,21 +164,18 @@ def get_path(goal_node):
     return path
 
 
-def is_constrained(curr_loc, next_loc, next_time, constraint_table):
-    print("is_constrained ?")
+def is_constrained(curr_loc, next_loc, curr_time, next_time, constraint_table):
     # {6: [{'agent': 24, 'loc':Node, 'timestep': 6, 'positive': False}
 
     if constraint_table == {}:
         print("Empty constraint_table")
         return False
 
-    print("constraint_table")
-    print(constraint_table)
-
-    prev_time = 0
     for time, constraints in constraint_table.items():
         if time == next_time:
             for constraint in constraints:
+                if constraint['positive']:
+                    continue
                 loc = constraint['loc']
                 if type(loc) == list:
                     loc = loc[1]
@@ -178,19 +184,16 @@ def is_constrained(curr_loc, next_loc, next_time, constraint_table):
                     return True
         else:
             for constraint in constraints:
+                print("is_constrained, constraint: ", constraint)
+                print()
+                if constraint['positive']:
+                    continue
                 constraint_time = constraint['timestep']
                 if type(constraint_time) == list:
-                    constraint_prev_loc = constraint['loc'][0]
-                    constraint_next_loc = constraint['loc'][1]
-                    if time >= constraint_time[0] and time <= constraint_time[1] and curr_loc == constraint_next_loc and next_loc == constraint_prev_loc:
-                        # Edge
+                    # Check for edge constraint
+                    if overlap([curr_time, next_time], constraint_time) and ([curr_loc, next_loc] == constraint['loc'] or [next_loc, curr_loc] == constraint['loc']):
                         print("is_constrained: Edge Constraint found")
                         return True
-                    if prev_time >= constraint_time[0] and prev_time <= constraint_time[1] and curr_loc == constraint_next_loc and next_loc == constraint_prev_loc:
-                        # Edge
-                        print("is_constrained: Edge Constraint found")
-                        return True
-        prev_time = time
 
     print("is_constrained: False")
     return False
@@ -246,11 +249,8 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     # Task 1.1: Extend the A* search to search in the space-time domain
     #           rather than space domain, only.
 
-    print("\nconstraints")
-    print(constraints)
-
     constraint_table = build_constraint_table(constraints, agent)
-    print("\nconstraint_table")
+    print("\na_star: constraint_table")
     print(constraint_table)
 
     open_list = []
@@ -281,7 +281,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
             new_cost = curr_node.get_cost(child_node)[1]
             child_cost = curr['g_val'] + new_cost
 
-            if is_constrained(curr['loc'], child_node, child_cost, constraint_table):
+            if is_constrained(curr['loc'], child_node, curr['g_val'], child_cost, constraint_table):
                 continue
 
             child = {'loc': child_node,
