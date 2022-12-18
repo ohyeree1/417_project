@@ -109,29 +109,38 @@ def build_constraint_table(constraints, agent):
 
 
 def get_location(path, time):
-    table = get_path_table(path)
-    max_time = list(table.keys())[-1]
+    cost_table, _ = get_path_table(path)
+    max_time = list(cost_table.keys())[-1]
 
     if time < 0:
         return path[0]
     elif time < max_time:
-        return path[time]
+        loc = cost_table[time]['loc']
+        if type(loc) == list:
+            loc = loc[1]
+        return loc
     else:
-        return path[max_time]  # wait at the goal location
+        loc = cost_table[max_time]['loc']
+        if type(loc) == list:
+            loc = loc[1]
+        return loc
 
 def get_prev_location(path, time):
-    table = get_path_table(path)
-    max_time = list(table.keys())[-1]
+    cost_table, node_table = get_path_table(path)
+    max_time = list(cost_table.keys())[-1]
     
     if time < 0:
         return path[0]
     elif time < max_time:
-        for index in range(time - 1, 0, -1):
-            if index in table:
-                return path[index]
-        return path[time]
+        loc = cost_table[time]['loc']
+        if type(loc) == list:
+            loc = loc[1]
+        return node_table[loc]['prev']
     else:
-        return path[max_time]  # wait at the goal location
+        loc = cost_table[max_time]['loc']
+        if type(loc) == list:
+            loc = loc[1]
+        return node_table[loc]['prev']
 
 
 def get_path(goal_node):
@@ -220,7 +229,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     # Task 1.1: Extend the A* search to search in the space-time domain
     #           rather than space domain, only.
     constraint_table = build_constraint_table(constraints, agent)
-    print("constraint_table")
+    print("\nconstraint_table")
     print(constraint_table)
 
     open_list = []
@@ -233,7 +242,6 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     push_node(open_list, root)
 
     closed_list[(root['loc'],root['time'])] = root
-    time = 0
 
     while len(open_list) > 0:
         curr = pop_node(open_list)

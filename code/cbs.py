@@ -20,23 +20,13 @@ def detect_collision(path1, path2):
     #           An edge collision occurs if the robots swap their location at the same timestep.
     #           You should use "get_location(path, t)" to get the location of a robot at time t.
 
-    path_table_1, node_table_1 = get_path_table(path1)
-    path_table_2, node_table_2 = get_path_table(path2)
-
-    print("path_table_1")   # {'loc': curr, 'prev': prev, 'prev_cost': cost}
-    print(path_table_1)
-    print("node_table_1")
-    print(node_table_1)
-    print("path_table_2")
-    print(path_table_2)
-    print("node_table_2")
-    print(node_table_2)
+    cost_table_1, node_table_1 = get_path_table(path1)
+    cost_table_2, node_table_2 = get_path_table(path2)
 
     # Check Vertex Collision
-    for time_cost, value_1 in path_table_1.items():
-        print("time_cost, value: ", time_cost, value_1)
-        if time_cost in path_table_2:
-            value_2 = path_table_2[time_cost]
+    for time_cost, value_1 in cost_table_1.items():
+        if time_cost in cost_table_2:
+            value_2 = cost_table_2[time_cost]
             
             if value_1['loc'] == value_2['loc']:
                 return [value_1['loc'], time_cost]
@@ -118,9 +108,12 @@ def paths_violate_constraint(constraint, paths):
     result = []
     for i in range(len(paths)):
         if i == constraint['agent']:
-            continue        
-        curr = get_location(paths[i], constraint['timestep'])
-        prev = get_prev_location(paths[i], constraint['timestep'])
+            continue
+        time = constraint['timestep']
+        if type(time) == list:
+            time = time[1]
+        curr = get_location(paths[i], time)
+        prev = get_prev_location(paths[i], time)
 
         if len(constraint['loc']) == 1:  # vertex constraint
             if constraint['loc'][0] == curr:
@@ -133,11 +126,6 @@ def paths_violate_constraint(constraint, paths):
     print("paths_violate_constraint, result: ", result)
     print()
     return result
-
-# def checkIfNew(x,constraints): #check if x is not in list of constraints yet
-#     for i in range(len(constraints)):
-#         if x == constraints[i]: return False
-#     return True
 
 def clone(ar): #creates a deep copy of an array
     new_ar = list()
@@ -238,11 +226,9 @@ class CBSSolver(object):
 
             # deal with positive constraints
             if disjoint and constraint['positive']:
-                print("Use Disjoint Splitting. constraint:")
-                print(constraint)
-                print()
+                print("Using Disjoint Splitting\n")
 
-                negative_agents = paths_violate_constraint(constraint, path['paths'])
+                negative_agents = paths_violate_constraint(constraint, node['paths'])
                 for negative_agent in negative_agents:
                     new_constraint = {
                         'agent': negative_agent,
