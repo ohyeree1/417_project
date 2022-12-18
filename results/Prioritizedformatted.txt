@@ -1,0 +1,24 @@
+N = node count, K = agent count, D = edge density
+Prioritized results:
+
+Clear rates:
+76 of 80 total maps were passed
+N = 10, K = 2: 20 of 20 cleared
+N = 50, K = 8: 18 of 20 cleared
+N = 250, K = 20: 20 of 20 cleared
+Alternate N = 50: 10 of 10 cleared
+Alternate N = 250: 8 of 10 cleared
+
+D = 1.1: 10 of 12 cleared
+D = 1.25: 12 of 12 cleared
+D = 1.5: 12 of 12 cleared
+D = 2: 12 of 12 cleared
+D = 3: 12 of 12 cleared
+
+Averages (only counts passed cases):
+N = 10, K = 2: 11.05
+N = 50, K = 8: 80.38888888888889
+N = 250, K = 20: 329.45
+Alternate N = 50: 182.9
+Alternate N = 250: 1118.625
+

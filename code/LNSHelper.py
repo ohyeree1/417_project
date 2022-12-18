@@ -106,6 +106,7 @@ def find_path(my_map,h,paths,start,finish,agent):
 
 
     # pseudorandomly pick one
+    # EDIT: Greedily choose the best option? Argubly this method is kinda the "how I approach this problem"
 
 
     # if at goal AND min time for the path is reached, then return the path
