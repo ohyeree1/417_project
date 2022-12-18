@@ -95,8 +95,9 @@ def disjoint_splitting(collision):
     # 0 = False, 1 = True
     a,b = True,False
     r = randint(0,1)
-    if r == 0: a,b = False,True
+    if r == 0: a, b = False, True
 
+    loc = collision['loc']
     if type(loc) == list:   # Edge Collision
         return [{'agent': collision['a1'], 'loc': [collision['loc'][0],collision['loc'][1]], 'timestep': collision['timestep'], 'positive': a},
                 {'agent': collision['a2'], 'loc': [collision['loc'][1],collision['loc'][0]], 'timestep': collision['timestep'], 'positive': b}]
@@ -116,13 +117,17 @@ def paths_violate_constraint(constraint, paths):
             time = time[1]
         curr = get_location(paths[i], time)
         prev = get_prev_location(paths[i], time)
+        
+        if time == 0 or curr == None:
+            continue
 
-        if len(constraint['loc']) == 1:  # vertex constraint
-            if constraint['loc'][0] == curr:
+        loc = constraint['loc']
+        print(loc)
+        if type(loc) == Node:
+            if loc == curr:   # Vertext Constraint
                 result.append(i)
-        else:  # edge constraint
-            if constraint['loc'][0] == prev or constraint['loc'][1] == curr \
-                    or constraint['loc'] == [curr, prev]:
+        else:  # Edge Constraint
+            if loc[0] == prev or loc[1] == curr:
                 result.append(i)
 
     print("paths_violate_constraint, result: ", result)

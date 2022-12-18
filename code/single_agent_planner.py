@@ -111,6 +111,8 @@ def get_location(path, time):
     if time < 0:
         return path[0]
     elif time < max_time:
+        if time not in cost_table:
+            return None
         loc = cost_table[time]['loc']
         if type(loc) == list:
             loc = loc[1]
@@ -121,6 +123,7 @@ def get_location(path, time):
             loc = loc[1]
         return loc
 
+
 def get_prev_location(path, time):
     cost_table, node_table = get_path_table(path)
     max_time = list(cost_table.keys())[-1]
@@ -128,6 +131,8 @@ def get_prev_location(path, time):
     if time < 0:
         return path[0]
     elif time < max_time:
+        if time not in cost_table:
+            return None
         loc = cost_table[time]['loc']
         if type(loc) == list:
             loc = loc[1]
