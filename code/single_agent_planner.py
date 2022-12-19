@@ -151,15 +151,15 @@ def get_path(goal_node):
 
 
 def is_constrained(curr_loc, next_loc, next_time, constraint_table):
-    print("is_constrained ? \n")
+    #print("is_constrained ? \n")
     # {6: [{'agent': 24, 'loc':Node, 'timestep': 6, 'positive': False}
 
     if constraint_table == {}:
-        print("No table")
+        #print("No table")
         return False
 
-    print("constraint_table")
-    print(constraint_table)
+    #print("constraint_table")
+    #print(constraint_table)
 
     prev_time = 0
     for time, constraints in constraint_table.items():
@@ -169,7 +169,7 @@ def is_constrained(curr_loc, next_loc, next_time, constraint_table):
                 if type(loc) == list:
                     loc = loc[1]
                 if loc == next_loc:
-                    print("is_constrained: Vertext Constraint found")
+                    #print("is_constrained: Vertext Constraint found")
                     return True
         else:
             for constraint in constraints:
@@ -238,12 +238,12 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     # Task 1.1: Extend the A* search to search in the space-time domain
     #           rather than space domain, only.
 
-    print("\nconstraints")
-    print(constraints)
+    #print("\nconstraints")
+    #print(constraints)
 
     constraint_table = build_constraint_table(constraints, agent)
-    print("\nconstraint_table")
-    print(constraint_table)
+    #print("\nconstraint_table")
+    #print(constraint_table)
 
     open_list = []
     closed_list = dict()

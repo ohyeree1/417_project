@@ -73,8 +73,3 @@ testGraphs/graph74.txt,780
 testGraphs/graph75.txt,766
 testGraphs/graph76.txt,1859
 testGraphs/graph77.txt,0
-testGraphs/graph78.txt,0
-testGraphs/graph79.txt,1458
-testGraphs/graph8.txt,14
-testGraphs/graph80.txt,1753
-testGraphs/graph9.txt,9
