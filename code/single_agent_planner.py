@@ -111,6 +111,8 @@ def get_location(path, time):
     if time < 0:
         return path[0]
     elif time < max_time:
+        if time not in cost_table:
+            return None
         loc = cost_table[time]['loc']
         if type(loc) == list:
             loc = loc[1]
@@ -121,6 +123,7 @@ def get_location(path, time):
             loc = loc[1]
         return loc
 
+
 def get_prev_location(path, time):
     cost_table, node_table = get_path_table(path)
     max_time = list(cost_table.keys())[-1]
@@ -128,6 +131,8 @@ def get_prev_location(path, time):
     if time < 0:
         return path[0]
     elif time < max_time:
+        if time not in cost_table:
+            return None
         loc = cost_table[time]['loc']
         if type(loc) == list:
             loc = loc[1]
@@ -179,12 +184,15 @@ def is_constrained(curr_loc, next_loc, next_time, constraint_table):
                     constraint_next_loc = constraint['loc'][1]
                     if time >= constraint_time[0] and time <= constraint_time[1] and curr_loc == constraint_next_loc and next_loc == constraint_prev_loc:
                         # Edge
+                        print("is_constrained: Edge Constraint found")
                         return True
                     if prev_time >= constraint_time[0] and prev_time <= constraint_time[1] and curr_loc == constraint_next_loc and next_loc == constraint_prev_loc:
                         # Edge
+                        print("is_constrained: Edge Constraint found")
                         return True
         prev_time = time
 
+    print("is_constrained: False")
     return False
 
 

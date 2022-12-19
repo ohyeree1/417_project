@@ -4,7 +4,9 @@ from random import randint #randint(0,1) for 4.2
 from single_agent_planner import compute_heuristics, a_star, get_sum_of_cost, print_paths, get_path_table, get_prev_location, get_location
 from graph import *
 import copy
+import sys
 
+sys.setrecursionlimit(3000)
 
 def overlap(curr_time, constraint_time):
     a, b = curr_time
@@ -71,13 +73,13 @@ def standard_splitting(collision):
     #                          specified timestep, and the second constraint prevents the second agent to traverse the
     #                          specified edge at the specified timestep
     
-    if len(collision['loc']) == 1: #vertex collision
-        return [{'agent': collision['a1'], 'loc': collision['loc'], 'timestep': collision['timestep'], 'positive': False},
-                {'agent': collision['a2'], 'loc': collision['loc'], 'timestep': collision['timestep'], 'positive': False}]
-    else: #edge collision
+    loc = collision['loc']
+    if type(loc) == list:   # Edge Collision
         return [{'agent': collision['a1'], 'loc': [collision['loc'][0],collision['loc'][1]], 'timestep': collision['timestep'], 'positive': False},
                 {'agent': collision['a2'], 'loc': [collision['loc'][1],collision['loc'][0]], 'timestep': collision['timestep'], 'positive': False}]
-    
+    else:   # Vertex Collision
+        return [{'agent': collision['a1'], 'loc': collision['loc'], 'timestep': collision['timestep'], 'positive': False},
+                {'agent': collision['a2'], 'loc': collision['loc'], 'timestep': collision['timestep'], 'positive': False}]  
 
 
 def disjoint_splitting(collision):
@@ -93,16 +95,17 @@ def disjoint_splitting(collision):
     # 0 = False, 1 = True
     a,b = True,False
     r = randint(0,1)
-    if r == 0: a,b = False,True
+    if r == 0: a, b = False, True
 
-    if len(collision['loc']) == 1: #vertex collision
+    loc = collision['loc']
+    if type(loc) == list:   # Edge Collision
+        return [{'agent': collision['a1'], 'loc': [collision['loc'][0],collision['loc'][1]], 'timestep': collision['timestep'], 'positive': a},
+                {'agent': collision['a2'], 'loc': [collision['loc'][1],collision['loc'][0]], 'timestep': collision['timestep'], 'positive': b}]
+    else:       # Vertex
         return [{'agent': collision['a1'], 'loc': collision['loc'], 'timestep': collision['timestep'], 'positive': a},
                 {'agent': collision['a2'], 'loc': collision['loc'], 'timestep': collision['timestep'], 'positive': b}]
 
-    else: #edge collision
-        return [{'agent': collision['a1'], 'loc': [collision['loc'][0],collision['loc'][1]], 'timestep': collision['timestep'], 'positive': a},
-                {'agent': collision['a2'], 'loc': [collision['loc'][1],collision['loc'][0]], 'timestep': collision['timestep'], 'positive': b}]
-    
+
 def paths_violate_constraint(constraint, paths):
     assert constraint['positive'] is True
     result = []
@@ -114,13 +117,17 @@ def paths_violate_constraint(constraint, paths):
             time = time[1]
         curr = get_location(paths[i], time)
         prev = get_prev_location(paths[i], time)
+        
+        if time == 0 or curr == None:
+            continue
 
-        if len(constraint['loc']) == 1:  # vertex constraint
-            if constraint['loc'][0] == curr:
+        loc = constraint['loc']
+        print(loc)
+        if type(loc) == Node:
+            if loc == curr:   # Vertext Constraint
                 result.append(i)
-        else:  # edge constraint
-            if constraint['loc'][0] == prev or constraint['loc'][1] == curr \
-                    or constraint['loc'] == [curr, prev]:
+        else:  # Edge Constraint
+            if loc[0] == prev or loc[1] == curr:
                 result.append(i)
 
     print("paths_violate_constraint, result: ", result)
@@ -192,11 +199,9 @@ class CBSSolver(object):
 
         root['cost'] = get_sum_of_cost(root['paths'])
         root['collisions'] = detect_collisions(root['paths'])
-        print("collisions: ", root['collisions'])
-
         self.push_node(root)
 
-        while len(self.open_list) > 0 and len(self.open_list) < 1000:
+        while len(self.open_list) > 0:
             node = self.pop_node()
 
             if len(node['collisions']) == 0:
@@ -204,54 +209,62 @@ class CBSSolver(object):
                 return node['paths']
             
             collision = node['collisions'][0]
-        
-        if disjoint:
-            constraints = disjoint_splitting(collision)
-        else:
-            constraints = standard_splitting(collision)
-        
-        for constraint in constraints:
-            child_node = copy.deepcopy(node)
-            if constraint not in child_node['constraints']:
-                child_node['constraints'].append(constraint)
+            
+            if disjoint:
+                constraints = disjoint_splitting(collision)
             else:
-                continue
+                constraints = standard_splitting(collision)
 
-            # deal with positive constraints
-            if disjoint and constraint['positive']:
-                print("Using Disjoint Splitting\n")
-
-                negative_agents = paths_violate_constraint(constraint, node['paths'])
-                for negative_agent in negative_agents:
-                    new_constraint = {
-                        'agent': negative_agent,
-                        'loc': constraint['loc'],
-                        'timestep': constraint['timestep']
-                    }
-                    if new_constraint not in child_node['constraints']:
-                        child_node['constraints'].append(new_constraint)
-
-                for negative_agent in negative_agents:
-                    path = a_star(self.my_map, self.starts[negative_agent], self.goals[negative_agent], self.heuristics[negative_agent], negative_agent, child_node['constraints'])
-                    if path:
-                        child_node['paths'][negative_agent] = path
-                    else:
-                        break
+            for constraint in constraints:
+                if constraint in node['constraints']:
+                    continue
+                
+                child_node = copy.deepcopy(node)
+                print(child_node)
+                print("copy")
+                if constraint not in child_node['constraints']:
+                    child_node['constraints'].append(constraint)
                 else:
-                    child_node['collisions'] = detect_collisions(child_node['paths'])
-                    child_node['cost'] = get_sum_of_cost(child_node['paths'])
-                    self.push_node(child_node)
+                    continue
 
-            else:   # Standard Splitting
-                agent = constraint['agent']
-                path = a_star(self.my_map, self.starts[agent], self.goals[agent], self.heuristics[agent], agent, child_node['constraints'])
+                # deal with positive constraints
+                if disjoint and constraint['positive']:
+                    print("Using Disjoint Splitting\n")
 
-                if path:
-                    child_node['paths'][agent] = path
-                    child_node['collisions'] = detect_collisions(child_node['paths'])
-                    child_node['cost'] = get_sum_of_cost(child_node['paths'])
-                    self.push_node(child_node)
-        
+                    negative_agents = paths_violate_constraint(constraint, node['paths'])
+                    for negative_agent in negative_agents:
+                        new_constraint = {
+                            'agent': negative_agent,
+                            'loc': constraint['loc'],
+                            'timestep': constraint['timestep']
+                        }
+                        if new_constraint not in child_node['constraints']:
+                            child_node['constraints'].append(new_constraint)
+
+                    for negative_agent in negative_agents:
+                        path = a_star(self.my_map, self.starts[negative_agent], self.goals[negative_agent], self.heuristics[negative_agent], negative_agent, child_node['constraints'])
+                        if path:
+                            child_node['paths'][negative_agent] = path
+                        else:
+                            break
+                    else:
+                        child_node['collisions'] = detect_collisions(child_node['paths'])
+                        child_node['cost'] = get_sum_of_cost(child_node['paths'])
+                        self.push_node(child_node)
+
+                else:   # Standard Splitting
+                    agent = constraint['agent']
+                    print("Using Standard Splitting\n")
+
+                    path = a_star(self.my_map, self.starts[agent], self.goals[agent], self.heuristics[agent], agent, child_node['constraints'])
+
+                    if path:
+                        child_node['paths'][agent] = path
+                        child_node['collisions'] = detect_collisions(child_node['paths'])
+                        child_node['cost'] = get_sum_of_cost(child_node['paths'])
+                        self.push_node(child_node)
+                
+
         print("No Solution")
         return []
 
