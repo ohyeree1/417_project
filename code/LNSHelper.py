@@ -24,7 +24,7 @@ def cost_of_path(p): #return the cost of a single given path
             c += p[k].edges[p[k+1].ID][1] #edge cost
     return c
 
-def count_collisions(agent1, agent2): 
+def count_collisions(agent1, agent2, node_list): 
     """
     return all collisions between two agents given their location tables
     and the time that the last collision occurs
@@ -41,7 +41,7 @@ def count_collisions(agent1, agent2):
     for i in range(end_time+1):
         a = get_location(agent1,i)
         b = get_location(agent2,i)
-        if collided(a,b):
+        if single_collide(a,b,node_list):
             collisions += 1
             last = max(i,last)
     
@@ -49,12 +49,12 @@ def count_collisions(agent1, agent2):
     #only possible case is when two agents swap nodes
     #via an edge of cost 1, higher cost is caught by direct timestep
     #TODO: adjust calculations for inbetween timestep collisions
-    for j in range(end_time-1):
+    for j in range(end_time):
         a = get_location(agent1,j)
         aa = get_location(agent1,j+1)
         b = get_location(agent2,j)
         bb = get_location(agent2,j+1)
-        if max(len(a),len(b),len(aa),len(bb)) == 1 and a == bb and b == aa: #edge 1 collision
+        if multi_collide(a,aa,b,bb,node_list): #collision occured
             collisions += 1
             last = max(last,j+1)
 
@@ -64,42 +64,60 @@ def get_location(table,x): #return int location at time x given table
     if x >= table[1]: return table[0][table[1]] #agent has stopped moving
     else: return table[0][x]
 
-def collided(x,y): 
+def single_collide(x,y,node_list): 
     #x,y are the locations of two agents at a singular time
     #returns True if x,y result in collision, False otherwise
-    if len(x) == 1 and len(y) == 1: #possible node collision, check if same
-        return x == y
-    elif len(x) == 2 and len(y) == 2: #possible edge collision, check if passthrough
-        return (x[0] == y[1]) and (x[1] == y[0])
+
+    if x == y: return True #either node collision or traversing same edge in same direction at same time
+    elif len(x) == 3 and len(y) == 3: #possible edge collision, check if passthrough
+        return (x[0] == y[1]) and (x[1] == y[0]) and ((x[2] + y[2]) == node_list[x[0]].edges[x[1]][1])
     return False # one agent is on a node and the other is on an edge, no collision
 
-"""
-def inbetween_collision(x,y):
-"""
+def multi_collide(x0,x1,y0,y1,node_list):
+    #given agents x and y at two consecutive time steps, determine if they collide
+    #node to node passthrough
+    if max(len(x0),len(x1),len(y0),len(y1)) == 1:
+        return (x0 == y1) and (y0 == x1)
+    #edge to edge passthrough
+    if min(len(x0),len(x1),len(y0),len(y1)) == 3:
+        return (x0[0] == y0[1]) and (x0[1] == y0[0]) and ((x0[2]+x1[2]+y0[2]+y1[2]) == (node_list[x0[0]].edges[x0[1]][1]*2))
+    #node to edge passthrough
+    if len(x0) == 1 and len(x1) == 3 and len(y0) == 3 and len(y1) == 1:
+        return (x0 == y1) and (x1[0] == y0[1]) and (x1[1] == y0[0])
+    #edge to node passthrough
+    if len(x0) == 3 and len(x1) == 1 and len(y0) == 1 and len(y1) == 3:
+        return (x1 == y0) and (x0[0] == y1[1]) and (x0[1] == y1[0])
+    return False
 
-def determine_collisions(paths,agent,loc,move,time):
+def determine_collisions(paths,agent,loc,move,time,node_list):
     # determine what collisions an action will result in for an agent
-    collisions = list()
-    tloc = [loc.ID,move[0].ID]
-    for i in range(1,move[1]+1): #check each timestep
-        if i == move[1]: tloc = [move[0].ID] #last step, at new node
-        
-        #collisions that occur directly on a timestep
-        for j in range(len(paths)):
-            if j != agent: #different paths
-                aloc = get_location(paths[j],time+i)
-                if collided(tloc,aloc): #collision occured
-                    collisions.append([j,time+i])
-        
-    #collisions that occur inbetween two steps (only occurs with move[1] == 1 and not a wait move)
-    if move[1] == 1 and loc != move[0]:
-        for k in range(len(paths)):
-            if k != agent: #different paths
-                aloc = get_location(paths[j],time)
-                bloc = get_location(paths[j],time+1)
-                if max(len(aloc),len(bloc)) == 1 and aloc[0] == move[0].ID and bloc[0] == loc.ID: #inbetween collision
-                    collisions.append([k,time+1])
+    """
+    paths -> list of location dictionaries for each agent
+    agent -> agent the move is for, ignore this one
+    loc -> current location
+    move -> move to be made, [node moving to,cost]
+    time -> current time
+    node_list -> list of nodes that make up the graph
+    """
+    collisions = list() #list of all collisions [agent.ID,time]
+    spots = list() # location for agent if move is made from time to time+cost inclusive
+    spots.append([loc.ID])
+    for i in range(1,move[1]):
+        spots.append([loc.ID,move[0].ID,i])
+    spots.append([move[0].ID])
 
+    for j in range(len(paths)):
+        if j != agent: #differing agents
+            for k in range(1,move[1]+1): #direct collision
+                a = get_location(paths[j],time+k)
+                if single_collide(spots[k],a,node_list):
+                    collisions.append([j,time+k])
+            for l in range(move[1]): #indirect collision
+                a = get_location(paths[j],time+l)
+                b = get_location(paths[j],time+l+1)
+                if multi_collide(a,b,spots[l],spots[l+1],node_list):
+                    collisions.append([j,time+l+1])
+                
     return collisions #list of [agent number,time of collision]
 
 def create_location_table(path): #return a dict for where an agent is based on "time"
@@ -113,7 +131,7 @@ def create_location_table(path): #return a dict for where an agent is based on "
         else: #traversing edge
             edge_cost = path[i].edges[path[i+1].ID][1]
             for j in range(time+1,time+edge_cost):
-                ans[j] = [path[i].ID,path[i+1].ID] #in process of traversing two nodes
+                ans[j] = [path[i].ID,path[i+1].ID,j-time] #in process of traversing two nodes
             time += edge_cost
     ans[time] = [path[-1].ID] #last node
     return [ans,time] #after time agent will be at last node
@@ -151,12 +169,11 @@ def find_path(my_map,h,paths,start,finish,agent,min_time):
         if prev_wait: prev_wait = False
         else: moveList.append(loc.edges[loc.ID])
         
-        # find which moves cause no collisions (including waiting), if any, else minimal collisions
-        best_collision_count = 9999999999
+        # find important info about each move [# collisions caused,A* value,node movinrg to, collisions caused]
         choices = list()
         for i in range(len(moveList)):
             move = moveList[i]
-            move_collisions = determine_collisions(paths,agent,loc,move,time)
+            move_collisions = determine_collisions(paths,agent,loc,move,time,my_map)
             cc = len(move_collisions)
             choices.append([cc,move[1]+h[move[0]],move[1],move[0].ID,move_collisions]) #TODO: attempt priority in moves
             """
@@ -178,9 +195,9 @@ def find_path(my_map,h,paths,start,finish,agent,min_time):
         choices.sort()
 
         # debug: what nodes are being chosen
-        xxxxx = list()
-        for iiiii in range(len(choices)):
-            xxxxx.append(choices[iiiii][3])
+        #xxxxx = list()
+        #for iiiii in range(len(choices)):
+        #    xxxxx.append(choices[iiiii][3])
         #print(*xxxxx,"neighbours ranked")
 
 
@@ -192,7 +209,7 @@ def find_path(my_map,h,paths,start,finish,agent,min_time):
         # for below, if choices[0][3] == finish.ID, then h[move[0]] = 0, 
         # thus first val is just the move cost 
         if choices[0][3] == finish.ID and time+choices[0][2] >= min_time: chosen_index = 0
-        else: chosen_index = weighted_random(len(choices),0.8) #stocastically select, prioritize best option
+        else: chosen_index = weighted_random(len(choices),0.9) #stocastically select, prioritize best option
         
         #add the new node to the path
         new_node = choices[chosen_index]
@@ -204,7 +221,7 @@ def find_path(my_map,h,paths,start,finish,agent,min_time):
         if len(path) > 100: #current error: only one move is considered viable waiting, causing an infinite loop
             #none of the graphs should have a path longer than 100 nodes, return empty if this is the case and try again
             return [],[],[]
-        #update unavoidable collisions
+        #update collisions
         for v in range(len(new_node[4])):
             np_collisions[new_node[4][v][0]] += 1
             np_last_collision[new_node[4][v][0]] = max(np_last_collision[new_node[4][v][0]],new_node[4][v][1])

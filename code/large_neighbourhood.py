@@ -17,7 +17,7 @@ class LargeNeighbourhoodSolver(object):
     """A planner that plans for each robot sequentially."""
 
     def __init__(self, graph):
-        self.my_map = graph.nodeList #graph object containing the map
+        self.my_map = graph.nodeList #graph object containing a list of nodes describing the graph
         self.starts = list() #starting nodes for each agent in order
         self.goals = list() #ending nodes for each agent in order
         self.num_of_agents = graph.agentCount #number of agents
@@ -65,7 +65,7 @@ class LargeNeighbourhoodSolver(object):
         #determine each collision occuring
         for m in range(self.num_of_agents):
             for n in range(m+1,self.num_of_agents):
-                pair_collisions,last_collision = count_collisions(agent_location[m],agent_location[n])
+                pair_collisions,last_collision = count_collisions(agent_location[m],agent_location[n],self.my_map)
                 collision_pair_freq[m][n] += pair_collisions
                 collision_pair_freq[n][m] += pair_collisions
                 collision_agent_freq[n] += pair_collisions
@@ -96,8 +96,6 @@ class LargeNeighbourhoodSolver(object):
         result_costs = list()
         for pa in range(self.num_of_agents):
             result_costs.append(cost_of_path(result[pa]))
-        
-
 
         # 2. Choose the path stochastically with the most problems/or slowest and delete it
         # Make the algo exponentially more likely to choose more "problematic" paths
@@ -126,7 +124,7 @@ class LargeNeighbourhoodSolver(object):
             if len(new_path) == 0: #path not found on this attempt, try again
                 miss_count += 1
                 continue
-            
+
             # 4. Reevaluate the solution, if better, keep it
             # TODO: this can be calculated alongside the path
             
@@ -148,7 +146,7 @@ class LargeNeighbourhoodSolver(object):
                         collision_pair_last[snth][atf] = np_last_collision[snth]
                 
                 #replace location table
-                new_table = create_location_table(new_path) #only create if needed
+                new_table = create_location_table(new_path)
                 agent_location[atf] = new_table
 
                 #replace path and its cost

@@ -9,7 +9,7 @@ CBSStandard
 CBSDisjoint
 LNS
 """
-file = "CBSDisjoint"
+file = "LNS"
 fileName = "results/"+file+".txt"
 f = Path(fileName)
 if not f.is_file():
@@ -76,7 +76,8 @@ for j in range(80):
             edge_clear_rate[(j//4)%5] += 1
 
 for snth in range(5):
-    size_average[snth] = (size_average[snth]/size_clear_rate[snth])
+    if size_clear_rate[snth] == 0: size_average[snth] = 0
+    else: size_average[snth] = (size_average[snth]/size_clear_rate[snth])
 
 output.write("N = node count, K = agent count, D = edge density\n")
 output.write(file+" results:\n\n")
