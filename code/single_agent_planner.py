@@ -18,7 +18,7 @@ def get_sum_of_cost(paths): #returns sum of the cost of paths
 
 def print_paths(paths): #prints out the paths in a more understandable way
     for num_path in range(len(paths)):
-        print("Agent ", num_path)
+        print("Agent "+str(num_path)+":")
         print_path(paths[num_path])
 
 def print_path(path): #prints out the paths in a more understandable way
@@ -26,7 +26,7 @@ def print_path(path): #prints out the paths in a more understandable way
     for node in range(len(path)):
         path_str += str(path[node].ID)
         path_str += " "
-    print(": ", path_str)
+    print(path_str)
 
 def get_path_table(path):
     cost_table = {}
@@ -164,13 +164,21 @@ def get_path(goal_node):
     return path
 
 
+
+
 def is_constrained(curr_loc, next_loc, curr_time, next_time, constraint_table):
+
     # {6: [{'agent': 24, 'loc':Node, 'timestep': 6, 'positive': False}
 
     if constraint_table == {}:
-        print("Empty constraint_table")
+        #print("No table")
         return False
 
+
+    #print("constraint_table")
+    #print(constraint_table)
+
+    prev_time = 0
     for time, constraints in constraint_table.items():
         if time == next_time:
             for constraint in constraints:
@@ -180,7 +188,8 @@ def is_constrained(curr_loc, next_loc, curr_time, next_time, constraint_table):
                 if type(loc) == list:
                     loc = loc[1]
                 if loc == next_loc:
-                    print("is_constrained: Vertext Constraint found on loc: ", loc)
+                    #print("is_constrained: Vertext Constraint found")
+                    #print("is_constrained: Vertext Constraint found on loc: ", loc)
                     return True
         else:
             for constraint in constraints:
@@ -247,10 +256,13 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     # Task 1.1: Extend the A* search to search in the space-time domain
     #           rather than space domain, only.
 
-    constraint_table = build_constraint_table(constraints, agent)
-    print("\na_star: constraint_table")
-    print(constraint_table)
+    #print("\nconstraints")
+    #print(constraints)
 
+    constraint_table = build_constraint_table(constraints, agent)
+    #print("\nconstraint_table")
+    #print(constraint_table)
+    
     open_list = []
     closed_list = dict()
 

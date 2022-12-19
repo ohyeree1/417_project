@@ -43,6 +43,7 @@ def print_locations(my_map, locations):
 
 
 def import_mapf_instance(fileName):
+    print(fileName)
     f = Path(fileName)
     if not f.is_file():
         raise BaseException(fileName + " does not exist.")
