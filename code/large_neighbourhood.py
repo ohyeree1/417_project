@@ -106,8 +106,9 @@ class LargeNeighbourhoodSolver(object):
             for q in range(self.num_of_agents):
                 path_ratings.append([collision_agent_freq[q],result_costs[q],q])
         
-            # order the paths from best to worst (via collisions involved in, then path cost), then pseudorandomly select one to fix
-            path_ratings.sort()
+            # order the paths from worst to best (via collisions involved in, then path cost), then pseudorandomly select one to fix
+            path_ratings.sort() # best to worst
+            path_ratings.reverse() # worst to best
             agent_to_fix = path_ratings[weighted_random(self.num_of_agents,0.3)][2] #fix result[agent_to_fix]
         
 
