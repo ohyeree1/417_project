@@ -165,8 +165,6 @@ def get_path(goal_node):
 
 
 
-def is_constrained(curr_loc, next_loc, next_time, constraint_table):
-    #print("is_constrained ? \n")
 
 def is_constrained(curr_loc, next_loc, curr_time, next_time, constraint_table):
 
