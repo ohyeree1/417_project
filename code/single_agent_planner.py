@@ -51,8 +51,8 @@ def get_path_table(path):
         c[new_cost] = {'loc': curr, 'prev': prev, 'prev_cost': cost}
         n[curr] = {'cost': new_cost, 'prev': prev, 'prev_cost': cost}
 
-        cost_table[(cost, new_cost)] = {'loc': curr, 'prev': prev, 'prev_cost': cost}
-        node_table[(prev, curr)] = {'cost': new_cost, 'prev': prev, 'prev_cost': cost}
+        cost_table[(cost, new_cost)] = {'loc': curr, 'prev': prev, 'prev_cost': cost, 'cost': new_cost}
+        node_table[(prev, curr)] = {'cost': new_cost, 'prev': prev, 'prev_cost': cost}  # may not need
 
         prev = curr
         cost = new_cost

@@ -103,6 +103,7 @@ def disjoint_splitting(collision):
     if type(loc) == list:
         print("Disjoint splitting for Edge Collision")
         return [{'agent': collision['a1'], 'loc': [collision['loc'][0],collision['loc'][1]], 'timestep': collision['timestep'], 'positive': a},
+                {'agent': collision['a2'], 'loc': [collision['loc'][0],collision['loc'][1]], 'timestep': collision['timestep'], 'positive': b},
                 {'agent': collision['a2'], 'loc': [collision['loc'][1],collision['loc'][0]], 'timestep': collision['timestep'], 'positive': b}]
     else:
         print("Disjoint splitting for Vertexß Collision")
@@ -111,6 +112,10 @@ def disjoint_splitting(collision):
 
 
 def paths_violate_constraint(constraint, paths):
+    print("------------------------------------- paths_violate_constraint ---------------------------------")
+    print("constraint:")
+    print(constraint)
+    print()
     assert constraint['positive'] is True
     result = []
     for i in range(len(paths)):
@@ -119,29 +124,33 @@ def paths_violate_constraint(constraint, paths):
 
         time = constraint['timestep']
         if type(time) == list:
-            time = time[1]          #[previosu time, current time]  
+            time = time[1]
 
+        print("time: ", time)
         loc_info = get_location(paths[i], time)
-
         if loc_info == {}:
             continue    # no collision found
 
         prev = loc_info['prev']
         curr = loc_info['loc']
-        print("prev, curr")
-        print(prev, curr)
+        prev_time = loc_info['prev_cost']
+        curr_time = loc_info['cost']
+        print("prev, curr, prev_time, curr_time")
+        print(prev.ID, curr.ID, prev_time, curr_time)
         
         if time == 0 or curr == None:
             continue
 
+        result.append(i)
         loc = constraint['loc']
-        print(loc)
         if type(loc) == Node:
             if loc == curr:   # Vertext Constraint
                 result.append(i)
         else:  # Edge Constraint
             print("paths_violate_constraint: Edge constraint found")
             if [prev, curr] == loc or [curr, prev] == loc:
+                print("Checking constraint edge locations")
+                print(loc[0].ID, loc[1].ID)
                 result.append(i)
 
     print("paths_violate_constraint, result: ", result)
@@ -208,7 +217,7 @@ class CBSSolver(object):
             path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
                           i, root['constraints'])
             if path is None:
-                raise BaseException('No solutions')
+                return []
             root['paths'].append(path)
 
         root['cost'] = get_sum_of_cost(root['paths'])
@@ -269,8 +278,9 @@ class CBSSolver(object):
                         print("Disjoint with negative constraint")
                         agent = constraint['agent']
                         path = a_star(self.my_map, self.starts[agent], self.goals[agent], self.heuristics[agent], agent, child_node['constraints'])
-                        if path:
+                        if path is not None:
                             child_node['paths'][agent] = path
+
                             child_node['collisions'] = detect_collisions(child_node['paths'])
                             child_node['cost'] = get_sum_of_cost(child_node['paths'])
                             self.push_node(child_node)
