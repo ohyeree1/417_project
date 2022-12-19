@@ -1,5 +1,6 @@
 import heapq
 from graph import *
+from range_key_dict import RangeKeyDict
 
 def overlap(curr_time, constraint_time):
     a, b = curr_time
@@ -31,6 +32,9 @@ def print_path(path): #prints out the paths in a more understandable way
 def get_path_table(path):
     cost_table = {}
     node_table = {}
+    c = {}
+    n = {}
+
     for step in range(len(path)):
         if step == 0:
             cost = 0
@@ -44,13 +48,19 @@ def get_path_table(path):
             else:
                 new_cost = cost + prev.edges[curr.ID][1] #edge cost
 
-        cost_table[new_cost] = {'loc': curr, 'prev': prev, 'prev_cost': cost}
-        node_table[curr] = {'cost': new_cost, 'prev': prev, 'prev_cost': cost}
-        
+        c[new_cost] = {'loc': curr, 'prev': prev, 'prev_cost': cost}
+        n[curr] = {'cost': new_cost, 'prev': prev, 'prev_cost': cost}
+
+        cost_table[(cost, new_cost)] = {'loc': curr, 'prev': prev, 'prev_cost': cost}
+        node_table[(prev, curr)] = {'cost': new_cost, 'prev': prev, 'prev_cost': cost}
+
         prev = curr
         cost = new_cost
 
-    return cost_table, node_table
+    cost_range_table = RangeKeyDict(cost_table)
+    node_range_table = RangeKeyDict(node_table)
+
+    return c, n, cost_range_table, node_range_table
 
 def compute_heuristics(node_list, goal_node):
     # Use Dijkstra to build a shortest-path tree rooted at the goal location
@@ -114,43 +124,14 @@ def build_constraint_table(constraints, agent):
 
 
 def get_location(path, time):
-    cost_table, _ = get_path_table(path)
-    max_time = list(cost_table.keys())[-1]
 
-    if time < 0:
-        return path[0]
-    elif time < max_time:
-        if time not in cost_table:
-            return None
-        loc = cost_table[time]['loc']
-        if type(loc) == list:
-            loc = loc[1]
-        return loc
-    else:
-        loc = cost_table[max_time]['loc']
-        if type(loc) == list:
-            loc = loc[1]
-        return loc
-
-
-def get_prev_location(path, time):
-    cost_table, node_table = get_path_table(path)
-    max_time = list(cost_table.keys())[-1]
-    
-    if time < 0:
-        return path[0]
-    elif time < max_time:
-        if time not in cost_table:
-            return None
-        loc = cost_table[time]['loc']
-        if type(loc) == list:
-            loc = loc[1]
-        return node_table[loc]['prev']
-    else:
-        loc = cost_table[max_time]['loc']
-        if type(loc) == list:
-            loc = loc[1]
-        return node_table[loc]['prev']
+    # cost_table[new_cost] = {'loc': curr, 'prev': prev, 'prev_cost': cost}
+    # node_table[curr] = {'cost': new_cost, 'prev': prev, 'prev_cost': cost}
+        
+    _, _, cost_range_table, _ = get_path_table(path)
+    print("cost_range_table")
+    print(cost_range_table)
+    return cost_range_table.get(time, {})
 
 
 def get_path(goal_node):

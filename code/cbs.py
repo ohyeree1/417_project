@@ -1,7 +1,7 @@
 import time as timer
 import heapq
 from random import randint #randint(0,1) for 4.2
-from single_agent_planner import compute_heuristics, a_star, get_sum_of_cost, print_path, print_paths, get_path_table, get_prev_location, get_location
+from single_agent_planner import compute_heuristics, a_star, get_sum_of_cost, print_path, print_paths, get_path_table, get_location
 from graph import *
 import copy
 import sys
@@ -22,8 +22,8 @@ def detect_collision(path1, path2):
     #           An edge collision occurs if the robots swap their location at the same timestep.
     #           You should use "get_location(path, t)" to get the location of a robot at time t.
 
-    cost_table_1, node_table_1 = get_path_table(path1)
-    cost_table_2, node_table_2 = get_path_table(path2)
+    cost_table_1, node_table_1, _, _ = get_path_table(path1)
+    cost_table_2, node_table_2, _, _ = get_path_table(path2)
 
     # Check Vertex Collision
     for time_cost, value_1 in cost_table_1.items():
@@ -98,7 +98,6 @@ def disjoint_splitting(collision):
     a,b = True,False
     r = randint(0,1)
     if r == 0: a, b = False, True
-    print("a: ", a, " b: ", b)
 
     loc = collision['loc']
     if type(loc) == list:
@@ -106,7 +105,7 @@ def disjoint_splitting(collision):
         return [{'agent': collision['a1'], 'loc': [collision['loc'][0],collision['loc'][1]], 'timestep': collision['timestep'], 'positive': a},
                 {'agent': collision['a2'], 'loc': [collision['loc'][1],collision['loc'][0]], 'timestep': collision['timestep'], 'positive': b}]
     else:
-        print("Disjoint splitting for Edge Collision")
+        print("Disjoint splitting for Vertexß Collision")
         return [{'agent': collision['a1'], 'loc': collision['loc'], 'timestep': collision['timestep'], 'positive': a},
                 {'agent': collision['a2'], 'loc': collision['loc'], 'timestep': collision['timestep'], 'positive': b}]
 
@@ -117,11 +116,20 @@ def paths_violate_constraint(constraint, paths):
     for i in range(len(paths)):
         if i == constraint['agent']:
             continue
+
         time = constraint['timestep']
         if type(time) == list:
-            time = time[1]
-        curr = get_location(paths[i], time)
-        prev = get_prev_location(paths[i], time)
+            time = time[1]          #[previosu time, current time]  
+
+        loc_info = get_location(paths[i], time)
+
+        if loc_info == {}:
+            continue    # no collision found
+
+        prev = loc_info['prev']
+        curr = loc_info['loc']
+        print("prev, curr")
+        print(prev, curr)
         
         if time == 0 or curr == None:
             continue
@@ -303,7 +311,7 @@ class CBSSolver(object):
 #                         self.push_node(child_node)
 
             else:   # Standard Splitting
-                constraints = disjoint_splitting(collision)
+                constraints = standard_splitting(collision)
                 for constraint in constraints:
                     if constraint in node['constraints']:
                         continue    # dup
@@ -323,7 +331,6 @@ class CBSSolver(object):
                         child_node['cost'] = get_sum_of_cost(child_node['paths'])
                         self.push_node(child_node)
                 
-
         print("No Solution")
         return []
 
