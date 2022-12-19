@@ -9,7 +9,8 @@ def weighted_random(choice_count: int, p: float) -> int:
     #repeat until choice is found (or just give up and choose first one if no choice is found after arbritarily long)
     x = 0
     for i in range(choice_count*50):
-        if e() < p: return x
+        if e() < p: 
+            return x
         x = (x+1) % choice_count
     return 0
 
@@ -139,13 +140,17 @@ def find_path(my_map,h,paths,start,finish,agent,min_time):
     
     # While not at goal, look at all moves in position
     time = 0
+    prev_wait = False #avoid potential case of getting stuck in an infinite wait loop
     while loc != finish or time < min_time:
         moveList = list()
         neighbours = list(loc.edges.keys())
+        #print("keys:",neighbours,"starting loc:",loc.ID)
         for k in range(len(neighbours)):
-            moveList.append(loc.edges[neighbours[k]]) #[node,cost]
-        moveList.append([loc,1])
+            if neighbours[k] != loc.ID: moveList.append(loc.edges[neighbours[k]]) #[node,cost]
 
+        if prev_wait: prev_wait = False
+        else: moveList.append(loc.edges[loc.ID])
+        
         # find which moves cause no collisions (including waiting), if any, else minimal collisions
         best_collision_count = 9999999999
         choices = list()
@@ -153,44 +158,56 @@ def find_path(my_map,h,paths,start,finish,agent,min_time):
             move = moveList[i]
             move_collisions = determine_collisions(paths,agent,loc,move,time)
             cc = len(move_collisions)
+            choices.append([cc,move[1]+h[move[0]],move[1],move[0].ID,move_collisions]) #TODO: attempt priority in moves
+            """
+            if cc != 0 and i+1 == len(moveList): break # do not consider wait if it causes a collision
             if cc < best_collision_count: #reset choice list, fewer collision option found
                 best_collision_count = cc
                 choices = list()
             if cc == best_collision_count: #candidate move, add to list
-                """
+            
+                
                 A* = g(n)+h(n)
                 g(n) = cost of move (current time is the same for each move so it can be removed)
                 h(n) = heuristic (see h above)
-                """
+                
                 #[time+cost+heuristic, move_cost, move.ID, list of collisions caused]
                 choices.append([move[1]+h[move[0]],move[1],move[0].ID,move_collisions])
-
+            """
         # rank minimal collision moves by "A*" value
         choices.sort()
+
+        # debug: what nodes are being chosen
+        xxxxx = list()
+        for iiiii in range(len(choices)):
+            xxxxx.append(choices[iiiii][3])
+        #print(*xxxxx,"neighbours ranked")
+
 
         # pseudorandomly pick one
         # If the first move trivially completes the path, choose it
         # Else, order the choices by best to worst and pseudorandomly choose one via weighted odds
         chosen_index = 0
 
-        # for below, if choices[0][1] == finish.ID, then h[move[0]] = 0, 
+        # for below, if choices[0][3] == finish.ID, then h[move[0]] = 0, 
         # thus first val is just the move cost 
-        if choices[0][1] == finish.ID and time+choices[0][1] >= min_time: chosen_index = 0
+        if choices[0][3] == finish.ID and time+choices[0][2] >= min_time: chosen_index = 0
         else: chosen_index = weighted_random(len(choices),0.8) #stocastically select, prioritize best option
         
         #add the new node to the path
         new_node = choices[chosen_index]
-        time += new_node[1]
-        loc = my_map[new_node[2]] 
+        time += new_node[2]
+        #print("new loc:",new_node[3])
+        if loc.ID == new_node[3]: prev_wait = True #wait action detected
+        loc = my_map[new_node[3]] 
         path.append(loc)
-        if len(path) > 500: 
-            print(path[50:60])
-            raise BaseException("infinite loop detected")
-
+        if len(path) > 100: #current error: only one move is considered viable waiting, causing an infinite loop
+            #none of the graphs should have a path longer than 100 nodes, return empty if this is the case and try again
+            return [],[],[]
         #update unavoidable collisions
-        for v in range(len(new_node[3])):
-            np_collisions[new_node[3][v][0]] += 1
-            np_last_collision[new_node[3][v][0]] = max(np_last_collision[new_node[3][v][0]],new_node[3][v][1])
+        for v in range(len(new_node[4])):
+            np_collisions[new_node[4][v][0]] += 1
+            np_last_collision[new_node[4][v][0]] = max(np_last_collision[new_node[4][v][0]],new_node[4][v][1])
     # if at goal AND min time for the path is reached, then return the path
 
     return path,np_collisions,np_last_collision 

@@ -123,7 +123,10 @@ class LargeNeighbourhoodSolver(object):
 
             atf = agent_to_fix #shorthand to make code easier to manage
             new_path,np_collisions,np_last_collision = find_path(self.my_map,self.heuristics[self.goals[atf].ID],agent_location,self.starts[atf],self.goals[atf],atf,max(collision_pair_last[atf]))
-
+            if len(new_path) == 0: #path not found on this attempt, try again
+                miss_count += 1
+                continue
+            
             # 4. Reevaluate the solution, if better, keep it
             # TODO: this can be calculated alongside the path
             
