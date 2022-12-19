@@ -18,7 +18,7 @@ def get_sum_of_cost(paths): #returns sum of the cost of paths
 
 def print_paths(paths): #prints out the paths in a more understandable way
     for num_path in range(len(paths)):
-        print("Agent ", num_path)
+        print("Agent "+str(num_path)+":")
         print_path(paths[num_path])
 
 def print_path(path): #prints out the paths in a more understandable way
@@ -26,7 +26,7 @@ def print_path(path): #prints out the paths in a more understandable way
     for node in range(len(path)):
         path_str += str(path[node].ID)
         path_str += " "
-    print(": ", path_str)
+    print(path_str)
 
 def get_path_table(path):
     cost_table = {}
@@ -262,10 +262,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     constraint_table = build_constraint_table(constraints, agent)
     #print("\nconstraint_table")
     #print(constraint_table)
-    constraint_table = build_constraint_table(constraints, agent)
-    print("\na_star: constraint_table")
-    print(constraint_table)
-
+    
     open_list = []
     closed_list = dict()
 
