@@ -26,12 +26,8 @@ def cost_of_path(p): #return the cost of a single given path
 
 def count_collisions(agent1, agent2, node_list): 
     """
-    return all collisions between two agents given their location tables
+    return the number of collisions between two agents given their location tables
     and the time that the last collision occurs
-    
-    Note: long edge collisions may end up counting multiple times, 
-    but this does not affect the goal of having no collisions in the 
-    final solution, only prioritises fixing these collisions more.
     """
         
     collisions = 0
@@ -46,9 +42,6 @@ def count_collisions(agent1, agent2, node_list):
             last = max(i,last)
     
     #collisions happening between two timesteps
-    #only possible case is when two agents swap nodes
-    #via an edge of cost 1, higher cost is caught by direct timestep
-    #TODO: adjust calculations for inbetween timestep collisions
     for j in range(end_time):
         a = get_location(agent1,j)
         aa = get_location(agent1,j+1)
@@ -69,7 +62,7 @@ def single_collide(x,y,node_list):
     #returns True if x,y result in collision, False otherwise
 
     if x == y: return True #either node collision or traversing same edge in same direction at same time
-    elif len(x) == 3 and len(y) == 3: #possible edge collision, check if passthrough
+    elif len(x) == 3 and len(y) == 3: #possible edge collision, check if on the same spot in the edge
         return (x[0] == y[1]) and (x[1] == y[0]) and ((x[2] + y[2]) == node_list[x[0]].edges[x[1]][1])
     return False # one agent is on a node and the other is on an edge, no collision
 
@@ -162,7 +155,6 @@ def find_path(my_map,h,paths,start,finish,agent,min_time):
     while loc != finish or time < min_time:
         moveList = list()
         neighbours = list(loc.edges.keys())
-        #print("keys:",neighbours,"starting loc:",loc.ID)
         for k in range(len(neighbours)):
             if neighbours[k] != loc.ID: moveList.append(loc.edges[neighbours[k]]) #[node,cost]
 
@@ -177,28 +169,15 @@ def find_path(my_map,h,paths,start,finish,agent,min_time):
             cc = len(move_collisions)
             choices.append([cc,move[1]+h[move[0]],move[1],move[0].ID,move_collisions]) #TODO: attempt priority in moves
             """
-            if cc != 0 and i+1 == len(moveList): break # do not consider wait if it causes a collision
-            if cc < best_collision_count: #reset choice list, fewer collision option found
-                best_collision_count = cc
-                choices = list()
-            if cc == best_collision_count: #candidate move, add to list
-            
-                
-                A* = g(n)+h(n)
-                g(n) = cost of move (current time is the same for each move so it can be removed)
-                h(n) = heuristic (see h above)
-                
-                #[time+cost+heuristic, move_cost, move.ID, list of collisions caused]
-                choices.append([move[1]+h[move[0]],move[1],move[0].ID,move_collisions])
+            above priorities are in order of the following:
+            1. number of collisions
+            2. "A*" value (move cost+heuristic, time is always same, no need to add)
+            3. move cost
+            4. ID of node moving to
+            move_collisions is kept for later use below
             """
         # rank minimal collision moves by "A*" value
         choices.sort()
-
-        # debug: what nodes are being chosen
-        #xxxxx = list()
-        #for iiiii in range(len(choices)):
-        #    xxxxx.append(choices[iiiii][3])
-        #print(*xxxxx,"neighbours ranked")
 
 
         # pseudorandomly pick one
@@ -208,7 +187,7 @@ def find_path(my_map,h,paths,start,finish,agent,min_time):
 
         # for below, if choices[0][3] == finish.ID, then h[move[0]] = 0, 
         # thus first val is just the move cost 
-        if choices[0][3] == finish.ID and time+choices[0][2] >= min_time: chosen_index = 0
+        if choices[0][3] == finish.ID and time+choices[0][2] >= min_time: chosen_index = 0 #trivial completion
         else: chosen_index = weighted_random(len(choices),0.9) #stocastically select, prioritize best option
         
         #add the new node to the path
@@ -218,13 +197,13 @@ def find_path(my_map,h,paths,start,finish,agent,min_time):
         if loc.ID == new_node[3]: prev_wait = True #wait action detected
         loc = my_map[new_node[3]] 
         path.append(loc)
-        if len(path) > 100: #current error: only one move is considered viable waiting, causing an infinite loop
+        if len(path) > 100: 
             #none of the graphs should have a path longer than 100 nodes, return empty if this is the case and try again
             return [],[],[]
         #update collisions
         for v in range(len(new_node[4])):
             np_collisions[new_node[4][v][0]] += 1
             np_last_collision[new_node[4][v][0]] = max(np_last_collision[new_node[4][v][0]],new_node[4][v][1])
+    
     # if at goal AND min time for the path is reached, then return the path
-
     return path,np_collisions,np_last_collision 

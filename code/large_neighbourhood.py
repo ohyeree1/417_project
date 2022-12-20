@@ -7,14 +7,11 @@ from LNSHelper import *
 test instructions:
 python run_experiments.py --instance "testGraphs/graph*" --solver LNS
 
-above tests CBS on the test graphs and writes to output to CBSresults.txt
-swap CBS with other algorithms as needed
-
-other notes:
-astar returns a list of nodes, not node ids (see use of get_sum_of_costs)
+above tests LNS on the testset and writes to output to LNSresult.txt
+other algorithms can be swapped as explained in run_experiments.py
 """
 class LargeNeighbourhoodSolver(object):
-    """A planner that plans for each robot sequentially."""
+    """A planner using LNS to solve a MAPF instance."""
 
     def __init__(self, graph):
         self.my_map = graph.nodeList #graph object containing a list of nodes describing the graph
@@ -84,11 +81,6 @@ class LargeNeighbourhoodSolver(object):
             
             print("Paths in the solution:")
             print_paths(result)
-            """
-            for j in range(self.num_of_agents):
-                print("Agent #"+str(j),result[j])
-            print(result)
-            """
             return result
 
         #independent a* has problems, use stocastic search to fix
@@ -113,12 +105,8 @@ class LargeNeighbourhoodSolver(object):
         
 
             # 3. Recreate the path with a stocastic search
-            # Assign value to each action based on heuristic value
-            # Path chosen ALWAYS greedingly chooses action that minimizes collisions
-            # A* value is used as tiebreaker, then order choices from best to worst
-            # Optimal path according to heuristic has highest chance with suboptimal still possible since they may avoid collisions
-            # Extra logic is used when waiting on goal node, prioritize waiting until a collision would occur, then move out
-            # minimum time = last collision with other path
+            # Further explained in find_path
+            # minimum time = time of last collision with another agent
 
             atf = agent_to_fix #shorthand to make code easier to manage
             new_path,np_collisions,np_last_collision = find_path(self.my_map,self.heuristics[self.goals[atf].ID],agent_location,self.starts[atf],self.goals[atf],atf,max(collision_pair_last[atf]))
@@ -127,7 +115,6 @@ class LargeNeighbourhoodSolver(object):
                 continue
 
             # 4. Reevaluate the solution, if better, keep it
-            # TODO: this can be calculated alongside the path
             
             np_cost = cost_of_path(new_path)
             np_collision_count = sum(np_collisions)
@@ -159,7 +146,7 @@ class LargeNeighbourhoodSolver(object):
 
 
         # 5. If no improvment is found after some number of attempts, return solution
-        # Arbritarily choosing 100 trials
+        # Arbritarily choosing 100 trials due to runtime for largest cases being about 30 seconds
         self.CPU_time = timer.time() - start_time
 
         print("\n Found a solution! \n")
@@ -170,9 +157,4 @@ class LargeNeighbourhoodSolver(object):
         
         print("Paths in the solution:")
         print_paths(result)
-        """
-        for j in range(self.num_of_agents):
-            print("Agent #"+str(j),result[j])
-        print(result)
-        """
         return result
