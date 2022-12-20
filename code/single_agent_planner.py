@@ -167,18 +167,9 @@ def get_path(goal_node):
 
 
 def is_constrained(curr_loc, next_loc, curr_time, next_time, constraint_table):
-
-    # {6: [{'agent': 24, 'loc':Node, 'timestep': 6, 'positive': False}
-
     if constraint_table == {}:
-        #print("No table")
         return False
 
-
-    #print("constraint_table")
-    #print(constraint_table)
-
-    prev_time = 0
     for time, constraints in constraint_table.items():
         if time == next_time:
             for constraint in constraints:
@@ -188,8 +179,6 @@ def is_constrained(curr_loc, next_loc, curr_time, next_time, constraint_table):
                 if type(loc) == list:
                     loc = loc[1]
                 if loc == next_loc:
-                    #print("is_constrained: Vertext Constraint found")
-                    #print("is_constrained: Vertext Constraint found on loc: ", loc)
                     return True
         else:
             for constraint in constraints:
@@ -199,10 +188,8 @@ def is_constrained(curr_loc, next_loc, curr_time, next_time, constraint_table):
                 if type(constraint_time) == list:
                     # Check for edge constraint
                     if overlap([curr_time, next_time], constraint_time) and ([curr_loc, next_loc] == constraint['loc'] or [next_loc, curr_loc] == constraint['loc']):
-                        print("is_constrained: Edge Constraint found")
                         return True
 
-    print("is_constrained: False")
     return False
 
 
@@ -250,22 +237,9 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
         agent       - the agent that is being re-planned
         constraints - constraints defining where robot should or cannot go at each timestep
     """
-    #print("Single Agent Planner: a_start")
-
-    ##############################
-    # Task 1.1: Extend the A* search to search in the space-time domain
-    #           rather than space domain, only.
-
-    #print("\nconstraints")
-    #print(constraints)
-
     constraint_table = build_constraint_table(constraints, agent)
-    #print("\nconstraint_table")
-    #print(constraint_table)
-    
     open_list = []
     closed_list = dict()
-
     earliest_goal_timestep = get_earliest_goal_timestep(agent, goal_loc, constraints)
 
     h_value = h_values[start_loc]
@@ -281,17 +255,14 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
         if curr_node == goal_loc and curr['time'] >= earliest_goal_timestep:
             return get_path(curr)
 
-        # print("node id: ", curr_node.ID)
         neighbors = curr_node.edges
         neighbors[curr_node.ID] = [curr_node, 1]    # add wait cost option
 
         for neighbor in neighbors:
             if neighbor is None:
                 continue
-            # print("neighbor: ", neighbor)
             child_node = neighbors[neighbor][0]
             new_cost = curr_node.get_cost(child_node)[1]
-            # print("new cost: ", new_cost)                   # TO DO: Why does it never choose to wait?
             child_cost = curr['g_val'] + new_cost
 
             if is_constrained(curr['loc'], child_node, curr['g_val'], child_cost, constraint_table):

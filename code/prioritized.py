@@ -46,7 +46,6 @@ class PrioritizedPlanningSolver(object):
             while path == None:
 
                 path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i], i, constraints)
-                print("path: ", path)
                 if path is None:
                     return []   # BaseException('No solutions')
 
@@ -69,13 +68,13 @@ class PrioritizedPlanningSolver(object):
         print("\n Found a solution! \n")
         print("CPU time (s):    {:.2f}".format(self.CPU_time))
         print("Sum of costs:    {}".format(get_sum_of_cost(result)))
-        print("Paths in the solution:")
 
-        for agent in range(self.num_of_agents):
-            path_str = ""
-            for node in result[agent]:
-                path_str += str(node.ID)
-                path_str += " "
-            print("Agent " + str(agent) + ": ", path_str)
+        # print("Paths in the solution:")
+        # for agent in range(self.num_of_agents):
+        #     path_str = ""
+        #     for node in result[agent]:
+        #         path_str += str(node.ID)
+        #         path_str += " "
+        #     print("Agent " + str(agent) + ": ", path_str)
 
         return result

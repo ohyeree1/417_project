@@ -41,7 +41,6 @@ def detect_collision(path1, path2):
             time_interval_1 = [value_1['prev_cost'], value_1['cost']]
             time_interval_2 = [node_table_2[prev_1]['prev_cost'], node_table_2[prev_1]["cost"]]
             if overlap(time_interval_1, time_interval_2):
-                print("Edge Collision")
                 return [[prev_1, node], [value_1['prev_cost'], value_1['cost']]]
 
     return None #no collisions found
@@ -75,11 +74,9 @@ def standard_splitting(collision):
     
     loc = collision['loc']
     if type(loc) == list:
-        print("Standard splitting for Edge Collision")
         return [{'agent': collision['a1'], 'loc': [collision['loc'][0],collision['loc'][1]], 'timestep': collision['timestep'], 'positive': False},
                 {'agent': collision['a2'], 'loc': [collision['loc'][1],collision['loc'][0]], 'timestep': collision['timestep'], 'positive': False}]
     else:
-        print("Standard splitting for Vertex Collision")
         return [{'agent': collision['a1'], 'loc': collision['loc'], 'timestep': collision['timestep'], 'positive': False},
                 {'agent': collision['a2'], 'loc': collision['loc'], 'timestep': collision['timestep'], 'positive': False}]  
 
@@ -98,15 +95,12 @@ def disjoint_splitting(collision):
     a,b = True,False
     r = randint(0,1)
     if r == 0: a, b = False, True
-    print("a: ", a, " b: ", b)
 
     loc = collision['loc']
     if type(loc) == list:
-        print("Disjoint splitting for Edge Collision")
         return [{'agent': collision['a1'], 'loc': [collision['loc'][0],collision['loc'][1]], 'timestep': collision['timestep'], 'positive': a},
                 {'agent': collision['a2'], 'loc': [collision['loc'][1],collision['loc'][0]], 'timestep': collision['timestep'], 'positive': b}]
     else:
-        print("Disjoint splitting for Edge Collision")
         return [{'agent': collision['a1'], 'loc': collision['loc'], 'timestep': collision['timestep'], 'positive': a},
                 {'agent': collision['a2'], 'loc': collision['loc'], 'timestep': collision['timestep'], 'positive': b}]
 
@@ -127,7 +121,6 @@ def paths_violate_constraint(constraint, paths):
             continue
 
         loc = constraint['loc']
-        print(loc)
         if type(loc) == Node:
             if loc == curr:   # Vertext Constraint
                 result.append(i)
@@ -229,7 +222,6 @@ class CBSSolver(object):
                     child_node['constraints'].append(constraint)
 
                     if constraint['positive']:
-                        print("Disjoint with positive constraint")
                         negative_agents = paths_violate_constraint(constraint, child_node['paths'])
                         for negative_agent in negative_agents:
                             new_constraint = {
@@ -258,7 +250,6 @@ class CBSSolver(object):
 
                     else:
                         # Disjoint but negative constraint
-                        print("Disjoint with negative constraint")
                         agent = constraint['agent']
                         path = a_star(self.my_map, self.starts[agent], self.goals[agent], self.heuristics[agent], agent, child_node['constraints'])
                         if path:
@@ -277,12 +268,9 @@ class CBSSolver(object):
                     child_node['constraints'].append(constraint)
 
                     agent = constraint['agent']
-                    print("\nUsing Standard Splitting")
                     path = a_star(self.my_map, self.starts[agent], self.goals[agent], self.heuristics[agent], agent, child_node['constraints'])
 
                     if path is not None:
-                        print("new path found:")
-                        print_path(path)
                         child_node['paths'][agent] = path
                         child_node['collisions'] = detect_collisions(child_node['paths'])
                         child_node['cost'] = get_sum_of_cost(child_node['paths'])
@@ -300,5 +288,5 @@ class CBSSolver(object):
         print("Sum of costs:    {}".format(get_sum_of_cost(node['paths'])))
         print("Expanded nodes:  {}".format(self.num_of_expanded))
         print("Generated nodes: {}".format(self.num_of_generated))
-        print("path:")
-        print_paths(node['paths'])
+        # print("path:")
+        # print_paths(node['paths'])
