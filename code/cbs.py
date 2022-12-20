@@ -267,41 +267,6 @@ class CBSSolver(object):
                             child_node['cost'] = get_sum_of_cost(child_node['paths'])
                             self.push_node(child_node)
 
-
-#             #
-#             for constraint in constraints:
-#                 if constraint in node['constraints']:
-#                     continue
-                
-#                 child_node = copy.deepcopy(node)
-#                 child_node['constraints'].append(constraint)
-                
-#                 # deal with positive constraints
-#                 if disjoint and constraint['positive']:
-#                     print("Using Disjoint Splitting\n")
-
-#                     negative_agents = paths_violate_constraint(constraint, node['paths'])
-#                     for negative_agent in negative_agents:
-#                         new_constraint = {
-#                             'agent': negative_agent,
-#                             'loc': constraint['loc'],
-#                             'timestep': constraint['timestep'],
-#                             'positive': False,
-#                         }
-#                         if new_constraint not in child_node['constraints']:
-#                             child_node['constraints'].append(new_constraint)
-
-#                     for negative_agent in negative_agents:
-#                         path = a_star(self.my_map, self.starts[negative_agent], self.goals[negative_agent], self.heuristics[negative_agent], negative_agent, child_node['constraints'])
-#                         if path:
-#                             child_node['paths'][negative_agent] = path
-#                         else:
-#                             break
-#                     else:
-#                         child_node['collisions'] = detect_collisions(child_node['paths'])
-#                         child_node['cost'] = get_sum_of_cost(child_node['paths'])
-#                         self.push_node(child_node)
-
             else:   # Standard Splitting
                 constraints = disjoint_splitting(collision)
                 for constraint in constraints:
